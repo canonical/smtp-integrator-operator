@@ -1,39 +1,49 @@
 #!/usr/bin/env python3
-
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Integration tests."""
+"""SMTP Integrator charm integration tests."""
 
-import asyncio
-import logging
-from pathlib import Path
-
+import ops
 import pytest
-import yaml
 from pytest_operator.plugin import OpsTest
 
-logger = logging.getLogger(__name__)
 
-METADATA = yaml.safe_load(Path("./metadata.yaml").read_text(encoding="utf-8"))
-APP_NAME = METADATA["name"]
-
-
+@pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_build_and_deploy(ops_test: OpsTest, pytestconfig: pytest.Config):
-    """Deploy the charm together with related charms.
+async def test_active(ops_test: OpsTest, app: ops.Application):
+    """Check that the charm is active.
 
-    Assert on the unit status before any relations/configurations take place.
+    Assume that the charm has already been built and is running.
     """
-    # Deploy the charm and wait for active/idle status
-    charm = pytestconfig.getoption("--charm-file")
-    resources = {"httpbin-image": METADATA["resources"]["httpbin-image"]["upstream-source"]}
-    assert ops_test.model
-    await asyncio.gather(
-        ops_test.model.deploy(
-            f"./{charm}", resources=resources, application_name=APP_NAME, series="jammy"
-        ),
-        ops_test.model.wait_for_idle(
-            apps=[APP_NAME], status="active", raise_on_blocked=True, timeout=1000
-        ),
+    await app.set_config(  # type: ignore[attr-defined]
+        {
+            "host": "smtp.example",
+            "port": 25,
+        }
     )
+    status_name = ops.ActiveStatus.name  # type: ignore[has-type]
+    assert ops_test.model
+    await ops_test.model.wait_for_idle(status=status_name, raise_on_error=True)
+    assert app.units[0].workload_status == status_name  # type: ignore
+
+
+@pytest.mark.asyncio
+@pytest.mark.abort_on_fail
+async def test_legacy_relation(ops_test: OpsTest, app: ops.Application, any_charm: ops.Application):
+    """Check that the charm is active once related to another charm.
+
+    Assume that the charm has already been built and is running.
+    """
+    relation_name = f"{app.name}:smtp_legacy"
+    assert ops_test.model
+    await ops_test.model.add_relation(any_charm.name, relation_name)
+    await app.set_config(  # type: ignore[attr-defined]
+        {
+            "host": "smtp.example",
+            "port": 25,
+        }
+    )
+    status_name = ops.ActiveStatus.name  # type: ignore[has-type]
+    await ops_test.model.wait_for_idle(status=status_name, raise_on_error=True)
+    assert app.units[0].workload_status == status_name  # type: ignore
