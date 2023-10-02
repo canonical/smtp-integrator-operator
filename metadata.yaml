@@ -2,7 +2,7 @@
 # See LICENSE file for licensing details.
 name: smtp-integrator
 display-name: SMTP Integrator
-summary: SMTP Integrator for certralizing SMTP configuration details.
+summary: SMTP Integrator for centralizing SMTP configuration.
 docs: https://discourse.charmhub.io
 issues: https://github.com/canonical/is-charms-template-repo/issues
 maintainers: 
