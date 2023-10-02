@@ -79,14 +79,28 @@ DEFAULT_RELATION_NAME = "smtp-legacy"
 
 
 class TransportSecurity(str, Enum):
-    """Represent the transport security values."""
+    """Represent the transport security values.
+
+    Attrs:
+        NONE: none
+        STARTTLS: starttls
+        TLS: tls
+    """
+
     NONE = "none"
     STARTTLS = "starttls"
     TLS = "tls"
 
 
 class AuthType(str, Enum):
-    """Represent the auth type values."""
+    """Represent the auth type values.
+
+    Attrs:
+        NONE: none
+        NOT_PROVIDED: not_provided
+        PLAIN: plain
+    """
+
     NONE = "none"
     NOT_PROVIDED = "not_provided"
     PLAIN = "plain"
