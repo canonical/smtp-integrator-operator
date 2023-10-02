@@ -8,7 +8,7 @@ Avoid using this README file for information that is maintained or published els
 Use links instead.
 -->
 
-# is-charms-template
+# smtp-integrator-operator
 
 Charmhub package name: operator-template
 More information: https://charmhub.io/is-charms-template
