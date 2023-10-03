@@ -14,7 +14,7 @@ be shared via the relation.
 
 ```python
 
-from charms.mtp_integrator.v0 import SmtpDataAvailableEvent, SmtpRequires
+from charms.smtp_integrator.v0 import SmtpDataAvailableEvent, SmtpRequires
 
 class SmtpRequirerCharm(ops.CharmBase):
     def __init__(self, *args):

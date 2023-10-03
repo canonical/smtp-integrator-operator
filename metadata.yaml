@@ -4,7 +4,7 @@ name: smtp-integrator
 display-name: SMTP Integrator
 summary: SMTP Integrator to centralize SMTP configuration.
 docs: https://discourse.charmhub.io
-issues: https://github.com/canonical/is-charms-template-repo/issues
+issues: https://github.com/canonical/smtp-integrator-operator/issues
 maintainers: 
   - https://launchpad.net/~canonical-is-devops
 source: https://github.com/canonical/smtp-integrator-operator/issues

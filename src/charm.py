@@ -73,7 +73,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         """Get relation data.
 
         Returns:
-            SmtpRelationData containing the IdP details.
+            SmtpRelationData containing the SMTP details.
         """
         return smtp.SmtpRelationData(
             host=self._charm_state.host,
