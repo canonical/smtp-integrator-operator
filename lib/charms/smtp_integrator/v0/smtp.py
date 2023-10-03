@@ -28,7 +28,7 @@ class SmtpRequirerCharm(ops.CharmBase):
 
 ```
 
-As shown above, the library provides a custom event to handle the sceneario in
+As shown above, the library provides a custom event to handle the scenario in
 which new SMTP data has been added or updated.
 
 ### Provider Charm

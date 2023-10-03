@@ -10,7 +10,7 @@ maintainers:
 source: https://github.com/canonical/smtp-integrator-operator/issues
 description: |
   A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators)
-  deploying and managing a SMTP Integrator on Kubernetes. SMTP s a communication
+  deploying and managing a SMTP Integrator on Kubernetes. SMTP is a communication
   protocol used for sending and receiving email messages over the Internet.
 
   This charm simplifies configuration of SMTP by providing a single point
