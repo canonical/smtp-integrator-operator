@@ -6,6 +6,7 @@
 """Module defining the CharmState class which represents the state of the SMTP Integrator charm."""
 
 import itertools
+from dataclasses import dataclass
 from typing import Optional
 
 import ops
@@ -61,7 +62,8 @@ class CharmConfigInvalidError(Exception):
         self.msg = msg
 
 
-class CharmState:
+@dataclass
+class CharmState:  # pylint: disable=too-many-instance-attributes
     """Represents the state of the SMTP Integrator charm.
 
     Attrs:
@@ -74,76 +76,27 @@ class CharmState:
         domain: The domain used by the sent emails from SMTP relay.
     """
 
+    host: str
+    port: int
+    user: Optional[str]
+    password: Optional[str]
+    auth_type: Optional[smtp.AuthType]
+    transport_security: Optional[smtp.TransportSecurity]
+    domain: Optional[str]
+
     def __init__(self, *, smtp_integrator_config: SmtpIntegratorConfig):
         """Initialize a new instance of the CharmState class.
 
         Args:
             smtp_integrator_config: SMTP Integrator configuration.
         """
-        self._smtp_integrator_config = smtp_integrator_config
-
-    @property
-    def host(self) -> str:
-        """Return host config.
-
-        Returns:
-            str: host config.
-        """
-        return self._smtp_integrator_config.host
-
-    @property
-    def port(self) -> int:
-        """Return port config.
-
-        Returns:
-            int: port config.
-        """
-        return self._smtp_integrator_config.port
-
-    @property
-    def user(self) -> Optional[str]:
-        """Return user config.
-
-        Returns:
-            str: user config.
-        """
-        return self._smtp_integrator_config.user
-
-    @property
-    def password(self) -> Optional[str]:
-        """Return password config.
-
-        Returns:
-            str: password config.
-        """
-        return self._smtp_integrator_config.password
-
-    @property
-    def auth_type(self) -> smtp.AuthType:
-        """Return auth_type config.
-
-        Returns:
-            AuthType: auth_type config.
-        """
-        return self._smtp_integrator_config.auth_type
-
-    @property
-    def transport_security(self) -> smtp.TransportSecurity:
-        """Return transport_security config.
-
-        Returns:
-            TransportSecurity: transport_security config.
-        """
-        return self._smtp_integrator_config.transport_security
-
-    @property
-    def domain(self) -> Optional[str]:
-        """Return domain config.
-
-        Returns:
-            str: domain config.
-        """
-        return self._smtp_integrator_config.domain
+        self.host = smtp_integrator_config.host
+        self.port = smtp_integrator_config.port
+        self.user = smtp_integrator_config.user
+        self.password = smtp_integrator_config.password
+        self.auth_type = smtp_integrator_config.auth_type
+        self.transport_security = smtp_integrator_config.transport_security
+        self.domain = smtp_integrator_config.domain
 
     @classmethod
     def from_charm(cls, charm: "ops.CharmBase") -> "CharmState":
