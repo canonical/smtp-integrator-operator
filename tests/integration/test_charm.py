@@ -32,7 +32,7 @@ async def test_legacy_relation(
 
     Assume that the charm has already been built and is running.
     """
-    relation_name = f"{app.name}:smtp_legacy"
+    relation_name = f"{app.name}:smtp-legacy"
     assert ops_test.model
     await ops_test.model.add_relation(any_charm.name, relation_name)
     await app.set_config({"host": "smtp.example"})  # type: ignore[attr-defined]
