@@ -3,12 +3,12 @@
 # Copyright 2023 Canonical Ltd.
 # Licensed under the Apache2.0. See LICENSE file in charm source for details.
 
-"""Library to manage the relation data for the SMTP Integrator charm.
+"""Library to manage the integration with the SMTP Integrator charm.
 
-This library contains the Requires and Provides classes for handling the relation
-between an application and a charm providing the `smtp`relation.
+This library contains the Requires and Provides classes for handling the integration
+between an application and a charm providing the `smtp` integration.
 It also contains a `SmtpRelationData` class to wrap the SMTP data that will
-be shared via the relation.
+be shared via the integration.
 
 ### Requirer Charm
 
