@@ -36,21 +36,13 @@ which new SMTP data has been added or updated.
 Following the previous example, this is an example of the provider charm.
 
 ```python
-from charms.smtp_integrator.v0 import SmtpDataAvailableEvent, SmtpRequires
+from charms.smtp_integrator.v0 import SmtpDataAvailableEvent, SmtpProvides
 
-class SmtpRequirerCharm(ops.CharmBase):
-    def __init__(self, *args):
-        super().__init__(*args)
-        self.smtp = SmtpRequires(self)
-        self.framework.observe(self.smtp.on.smtp_data_available, self._on_smtp_data_available)
-        ...
-
-    def _on_smtp_data_available(self, events: SmtpDataAvailableEvent) -> None:
-        ...
-
+class SmtpProviderCharm(ops.CharmBase):
     def __init__(self, *args):
         super().__init__(*args)
         self.smtp = SmtpProvides(self)
+        ...
 
 ```
 The SmtpProvides object wraps the list of relations into a `relations` property

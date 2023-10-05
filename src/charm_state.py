@@ -24,7 +24,7 @@ KNOWN_CHARM_CONFIG = (
 )
 
 
-class SmtpIntegratorConfig(BaseModel):  # pylint: disable=too-few-public-methods
+class SmtpIntegratorConfig(BaseModel):
     """Represent charm builtin configuration values.
 
     Attrs:
