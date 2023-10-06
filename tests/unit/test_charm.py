@@ -9,6 +9,17 @@ from ops.testing import Harness
 from charm import SmtpIntegratorOperatorCharm
 
 
+def test_unconfigured_charm_reaches_blocked_status():
+    """
+    arrange: set up a charm.
+    act: trigger a configuration change missing required configs.
+    assert: the charm reaches BlockedStatus.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.begin()
+    assert harness.model.unit.status.name == ops.BlockedStatus().name
+
+
 def test_misconfigured_charm_reaches_blocked_status():
     """
     arrange: set up a charm.
@@ -16,6 +27,12 @@ def test_misconfigured_charm_reaches_blocked_status():
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.update_config(
+        {
+            "host": "smtp.example",
+            "port": 0,
+        }
+    )
     harness.begin()
     assert harness.model.unit.status.name == ops.BlockedStatus().name
 

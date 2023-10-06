@@ -14,7 +14,6 @@ from charms.smtp_integrator.v0 import smtp
 
 from charm_state import CharmConfigInvalidError, CharmState
 
-# Log messages can be retrieved using juju debug-log
 logger = logging.getLogger(__name__)
 
 LEGACY_RELATION_NAME = "smtp-legacy"

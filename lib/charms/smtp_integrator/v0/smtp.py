@@ -61,11 +61,14 @@ LIBAPI = 0
 LIBPATCH = 1
 
 # pylint: disable=wrong-import-position
+import logging
 from enum import Enum
 from typing import Optional
 
 import ops
 from pydantic import BaseModel, Field
+
+logger = logging.getLogger(__name__)
 
 DEFAULT_RELATION_NAME = "smtp-legacy"
 
@@ -236,7 +239,13 @@ class SmtpRequires(ops.Object):
             event: event triggering this handler.
         """
         assert event.relation.app
-        if event.relation.data[event.relation.app]:
+        relation_data = event.relation.data[event.relation.app]
+        if relation_data:
+            print(relation_data)
+            if relation_data["auth_type"] == AuthType.NONE.value:
+                logger.warning('Insecure setting: auth_type has a value "none"')
+            if relation_data["transport_security"] == TransportSecurity.NONE.value:
+                logger.warning('Insecure setting: transport_security has value "none"')
             self.on.smtp_data_available.emit(event.relation, app=event.app, unit=event.unit)
 
 
