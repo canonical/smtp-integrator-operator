@@ -20,7 +20,7 @@ def test_unconfigured_charm_reaches_blocked_status():
     assert harness.model.unit.status.name == ops.BlockedStatus().name
 
 
-def test_misconfigured_charm_reaches_blocked_status():
+def test_misconfigured_port_charm_reaches_blocked_status():
     """
     arrange: set up a charm.
     act: trigger a configuration change missing required configs.
@@ -31,6 +31,42 @@ def test_misconfigured_charm_reaches_blocked_status():
         {
             "host": "smtp.example",
             "port": 0,
+        }
+    )
+    harness.begin()
+    assert harness.model.unit.status.name == ops.BlockedStatus().name
+
+
+def test_misconfigured_auth_type_charm_reaches_blocked_status():
+    """
+    arrange: set up a charm.
+    act: trigger a configuration change missing required configs.
+    assert: the charm reaches BlockedStatus.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.update_config(
+        {
+            "host": "smtp.example",
+            "port": 25,
+            "auth_type": "nonexisting",
+        }
+    )
+    harness.begin()
+    assert harness.model.unit.status.name == ops.BlockedStatus().name
+
+
+def test_misconfigured_transport_security_charm_reaches_blocked_status():
+    """
+    arrange: set up a charm.
+    act: trigger a configuration change missing required configs.
+    assert: the charm reaches BlockedStatus.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.update_config(
+        {
+            "host": "smtp.example",
+            "port": 25,
+            "auth_type": "nonexisting",
         }
     )
     harness.begin()
