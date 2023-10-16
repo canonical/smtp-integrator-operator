@@ -66,9 +66,9 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         if not self.model.unit.is_leader():
             return
         for relation in self.smtp.relations:
-            self.smtp.update_relation_data(relation, self.get_smtp_data())
+            self.smtp.update_relation_data(relation, self._get_smtp_data())
 
-    def get_smtp_data(self) -> smtp.SmtpRelationData:
+    def _get_smtp_data(self) -> smtp.SmtpRelationData:
         """Get relation data.
 
         Returns:

@@ -71,21 +71,4 @@ Unit that this execution is responsible for.
 
 
 
----
-
-<a href="../src/charm.py#L71"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
-
-### <kbd>function</kbd> `get_smtp_data`
-
-```python
-get_smtp_data() → SmtpRelationData
-```
-
-Get relation data. 
-
-
-
-**Returns:**
-  SmtpRelationData containing the SMTP details. 
-
 
