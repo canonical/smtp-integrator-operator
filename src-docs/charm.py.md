@@ -16,7 +16,7 @@ SMTP Integrator Charm service.
 ## <kbd>class</kbd> `SmtpIntegratorOperatorCharm`
 Charm the service. 
 
-<a href="../src/charm.py#L28"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/charm.py#L27"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>function</kbd> `__init__`
 
@@ -73,7 +73,7 @@ Unit that this execution is responsible for.
 
 ---
 
-<a href="../src/charm.py#L72"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/charm.py#L71"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>function</kbd> `get_smtp_data`
 

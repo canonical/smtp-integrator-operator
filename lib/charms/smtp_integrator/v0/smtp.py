@@ -76,7 +76,7 @@ DEFAULT_RELATION_NAME = "smtp-legacy"
 class TransportSecurity(str, Enum):
     """Represent the transport security values.
 
-    Attrs:
+    Attributes:
         NONE: none
         STARTTLS: starttls
         TLS: tls
@@ -90,7 +90,7 @@ class TransportSecurity(str, Enum):
 class AuthType(str, Enum):
     """Represent the auth type values.
 
-    Attrs:
+    Attributes:
         NONE: none
         NOT_PROVIDED: not_provided
         PLAIN: plain
@@ -104,7 +104,7 @@ class AuthType(str, Enum):
 class SmtpRelationData(BaseModel):
     """Represent the relation data.
 
-    Attrs:
+    Attributes:
         host: The hostname or IP address of the outgoing SMTP relay.
         port: The port of the outgoing SMTP relay.
         user: The SMTP AUTH user to use for the outgoing SMTP relay.
@@ -146,7 +146,7 @@ class SmtpRelationData(BaseModel):
 class SmtpDataAvailableEvent(ops.RelationEvent):
     """Smtp event emitted when relation data has changed.
 
-    Attrs:
+    Attributes:
         host: The hostname or IP address of the outgoing SMTP relay.
         port: The port of the outgoing SMTP relay.
         user: The SMTP AUTH user to use for the outgoing SMTP relay.
@@ -204,7 +204,7 @@ class SmtpRequiresEvents(ops.CharmEvents):
 
     This class defines the events that a SMTP requirer can emit.
 
-    Attrs:
+    Attributes:
         smtp_data_available: the SmtpDataAvailableEvent.
     """
 
@@ -214,7 +214,7 @@ class SmtpRequiresEvents(ops.CharmEvents):
 class SmtpRequires(ops.Object):
     """Requirer side of the SMTP relation.
 
-    Attrs:
+    Attributes:
         on: events the provider can emit.
     """
 
@@ -251,7 +251,7 @@ class SmtpRequires(ops.Object):
 class SmtpProvides(ops.Object):
     """Provider side of the SMTP relation.
 
-    Attrs:
+    Attributes:
         relations: list of charm relations.
     """
 

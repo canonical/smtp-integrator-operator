@@ -27,7 +27,7 @@ KNOWN_CHARM_CONFIG = (
 class SmtpIntegratorConfig(BaseModel):
     """Represent charm builtin configuration values.
 
-    Attrs:
+    Attributes:
         host: The hostname or IP address of the outgoing SMTP relay.
         port: The port of the outgoing SMTP relay.
         user: The SMTP AUTH user to use for the outgoing SMTP relay.
@@ -49,7 +49,7 @@ class SmtpIntegratorConfig(BaseModel):
 class CharmConfigInvalidError(Exception):
     """Exception raised when a charm configuration is found to be invalid.
 
-    Attrs:
+    Attributes:
         msg (str): Explanation of the error.
     """
 
@@ -66,7 +66,7 @@ class CharmConfigInvalidError(Exception):
 class CharmState:  # pylint: disable=too-many-instance-attributes
     """Represents the state of the SMTP Integrator charm.
 
-    Attrs:
+    Attributes:
         host: The hostname or IP address of the outgoing SMTP relay.
         port: The port of the outgoing SMTP relay.
         user: The SMTP AUTH user to use for the outgoing SMTP relay.

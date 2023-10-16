@@ -15,7 +15,11 @@ Module defining the CharmState class which represents the state of the SMTP Inte
 ## <kbd>class</kbd> `CharmConfigInvalidError`
 Exception raised when a charm configuration is found to be invalid. 
 
-Attrs:  msg (str): Explanation of the error. 
+
+
+**Attributes:**
+ 
+ - <b>`msg`</b> (str):  Explanation of the error. 
 
 <a href="../src/charm_state.py#L56"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -42,7 +46,17 @@ Initialize a new instance of the CharmConfigInvalidError exception.
 ## <kbd>class</kbd> `CharmState`
 Represents the state of the SMTP Integrator charm. 
 
-Attrs:  host: The hostname or IP address of the outgoing SMTP relay.  port: The port of the outgoing SMTP relay.  user: The SMTP AUTH user to use for the outgoing SMTP relay.  password: The SMTP AUTH password to use for the outgoing SMTP relay.  auth_type: The type used to authenticate with the SMTP relay.  transport_security: The security protocol to use for the outgoing SMTP relay.  domain: The domain used by the sent emails from SMTP relay. 
+
+
+**Attributes:**
+ 
+ - <b>`host`</b>:  The hostname or IP address of the outgoing SMTP relay. 
+ - <b>`port`</b>:  The port of the outgoing SMTP relay. 
+ - <b>`user`</b>:  The SMTP AUTH user to use for the outgoing SMTP relay. 
+ - <b>`password`</b>:  The SMTP AUTH password to use for the outgoing SMTP relay. 
+ - <b>`auth_type`</b>:  The type used to authenticate with the SMTP relay. 
+ - <b>`transport_security`</b>:  The security protocol to use for the outgoing SMTP relay. 
+ - <b>`domain`</b>:  The domain used by the sent emails from SMTP relay. 
 
 <a href="../src/charm_state.py#L87"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
@@ -95,7 +109,17 @@ Return: The CharmState instance created by the provided charm.
 ## <kbd>class</kbd> `SmtpIntegratorConfig`
 Represent charm builtin configuration values. 
 
-Attrs:  host: The hostname or IP address of the outgoing SMTP relay.  port: The port of the outgoing SMTP relay.  user: The SMTP AUTH user to use for the outgoing SMTP relay.  password: The SMTP AUTH password to use for the outgoing SMTP relay.  auth_type: The type used to authenticate with the SMTP relay.  transport_security: The security protocol to use for the outgoing SMTP relay.  domain: The domain used by the sent emails from SMTP relay. 
+
+
+**Attributes:**
+ 
+ - <b>`host`</b>:  The hostname or IP address of the outgoing SMTP relay. 
+ - <b>`port`</b>:  The port of the outgoing SMTP relay. 
+ - <b>`user`</b>:  The SMTP AUTH user to use for the outgoing SMTP relay. 
+ - <b>`password`</b>:  The SMTP AUTH password to use for the outgoing SMTP relay. 
+ - <b>`auth_type`</b>:  The type used to authenticate with the SMTP relay. 
+ - <b>`transport_security`</b>:  The security protocol to use for the outgoing SMTP relay. 
+ - <b>`domain`</b>:  The domain used by the sent emails from SMTP relay. 
 
 
 

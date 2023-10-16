@@ -11,7 +11,7 @@ from any_charm_base import AnyCharmBase
 class AnyCharm(AnyCharmBase):  # pylint: disable=too-few-public-methods
     """Execute a simple charm workload to test the smtp relation.
 
-    Attrs:
+    Attributes:
         smtp: The attribute that mimics a real SMTP relation.
     """
 
