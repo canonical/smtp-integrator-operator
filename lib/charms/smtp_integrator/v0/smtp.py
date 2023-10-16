@@ -241,7 +241,6 @@ class SmtpRequires(ops.Object):
         assert event.relation.app
         relation_data = event.relation.data[event.relation.app]
         if relation_data:
-            print(relation_data)
             if relation_data["auth_type"] == AuthType.NONE.value:
                 logger.warning('Insecure setting: auth_type has a value "none"')
             if relation_data["transport_security"] == TransportSecurity.NONE.value:
