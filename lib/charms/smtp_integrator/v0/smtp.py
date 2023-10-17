@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 # Copyright 2023 Canonical Ltd.
 # Licensed under the Apache2.0. See LICENSE file in charm source for details.
 
