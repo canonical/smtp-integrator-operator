@@ -34,7 +34,7 @@ async def test_legacy_relation(
     """
     assert ops_test.model
     relation_name = f"{app.name}:smtp-legacy"
-    await ops_test.model.add_relation(any_charm.name, relation_name)
+    await ops_test.model.add_relation(f"{any_charm.name}:smtp-legacy", relation_name)
     await app.set_config({"host": "smtp.example"})  # type: ignore[attr-defined]
     status_name = ops.ActiveStatus.name  # type: ignore[has-type]
     await ops_test.model.wait_for_idle(status=status_name, raise_on_error=True)
