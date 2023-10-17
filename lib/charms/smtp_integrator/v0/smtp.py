@@ -157,46 +157,53 @@ class SmtpDataAvailableEvent(ops.RelationEvent):
     """
 
     @property
+    def _relation_data(self) -> SmtpRelationData:
+        assert self.relation.app
+        relation_data = self.relation.data[self.relation.app]
+        return SmtpRelationData(
+            host=relation_data.get("host"),
+            port=relation_data.get("port"),
+            user=relation_data.get("user"),
+            password=relation_data.get("password"),
+            auth_type=relation_data.get("auth_type"),
+            transport_security=relation_data.get("transport_security"),
+            domain=relation_data.get("domain"),
+        )
+
+    @property
     def host(self) -> str:
         """Fetch the SMTP host from the relation."""
-        assert self.relation.app
-        return self.relation.data[self.relation.app].get("host")
+        return self._relation_data.host
 
     @property
     def port(self) -> int:
         """Fetch the SMTP port from the relation."""
-        assert self.relation.app
-        return int(self.relation.data[self.relation.app].get("port"))
+        return self._relation_data.port
 
     @property
-    def user(self) -> str:
+    def user(self) -> Optional[str]:
         """Fetch the SMTP user from the relation."""
-        assert self.relation.app
-        return self.relation.data[self.relation.app].get("user")
+        return self._relation_data.user
 
     @property
-    def password(self) -> str:
+    def password(self) -> Optional[str]:
         """Fetch the SMTP password from the relation."""
-        assert self.relation.app
-        return self.relation.data[self.relation.app].get("password")
+        return self._relation_data.password
 
     @property
     def auth_type(self) -> str:
         """Fetch the SMTP auth type from the relation."""
-        assert self.relation.app
-        return self.relation.data[self.relation.app].get("auth_type")
+        return self._relation_data.auth_type
 
     @property
     def transport_security(self) -> str:
         """Fetch the SMTP transport security protocol from the relation."""
-        assert self.relation.app
-        return self.relation.data[self.relation.app].get("transport_security")
+        return self._relation_data.transport_security
 
     @property
-    def domain(self) -> str:
+    def domain(self) -> Optional[str]:
         """Fetch the SMTP domain from the relation."""
-        assert self.relation.app
-        return self.relation.data[self.relation.app].get("domain")
+        return self._relation_data.domain
 
 
 class SmtpRequiresEvents(ops.CharmEvents):
