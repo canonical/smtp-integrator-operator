@@ -64,7 +64,7 @@ from enum import Enum
 from typing import Optional
 
 import ops
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -230,6 +230,31 @@ class SmtpRequires(ops.Object):
         self.relation_name = relation_name
         self.framework.observe(charm.on[relation_name].relation_changed, self._on_relation_changed)
 
+    def _is_relation_data_valid(self, relation: ops.Relation) -> bool:
+        """Validate the relation data.
+
+        Args:
+            relation: the relation to validate.
+
+        Returns:
+            true: if the relation data is valid.
+        """
+        try:
+            assert relation.app
+            relation_data = relation.data[relation.app]
+            _ = SmtpRelationData(
+                host=relation_data.get("host"),
+                port=relation_data.get("port"),
+                user=relation_data.get("user"),
+                password=relation_data.get("password"),
+                auth_type=relation_data.get("auth_type"),
+                transport_security=relation_data.get("transport_security"),
+                domain=relation_data.get("domain"),
+            )
+            return True
+        except ValidationError:
+            return False
+
     def _on_relation_changed(self, event: ops.RelationChangedEvent) -> None:
         """Event emitted when the relation has changed.
 
@@ -243,7 +268,8 @@ class SmtpRequires(ops.Object):
                 logger.warning('Insecure setting: auth_type has a value "none"')
             if relation_data["transport_security"] == TransportSecurity.NONE.value:
                 logger.warning('Insecure setting: transport_security has value "none"')
-            self.on.smtp_data_available.emit(event.relation, app=event.app, unit=event.unit)
+            if self._is_relation_data_valid(event.relation):
+                self.on.smtp_data_available.emit(event.relation, app=event.app, unit=event.unit)
 
 
 class SmtpProvides(ops.Object):
