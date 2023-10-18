@@ -5,25 +5,23 @@
 
 # Learn more at: https://juju.is/docs/sdk
 
-"""Charm the service.
-
-Refer to the following post for a quick-start guide that will help you
-develop a new k8s charm using the Operator Framework:
-
-https://discourse.charmhub.io/t/4208
-"""
+"""SMTP Integrator Charm service."""
 
 import logging
 
 import ops
+from charms.smtp_integrator.v0 import smtp
 
-# Log messages can be retrieved using juju debug-log
+from charm_state import CharmConfigInvalidError, CharmState
+
 logger = logging.getLogger(__name__)
+
+LEGACY_RELATION_NAME = "smtp-legacy"
 
 VALID_LOG_LEVELS = ["info", "debug", "warning", "error", "critical"]
 
 
-class IsCharmsTemplateCharm(ops.CharmBase):
+class SmtpIntegratorOperatorCharm(ops.CharmBase):
     """Charm the service."""
 
     def __init__(self, *args):
@@ -33,83 +31,59 @@ class IsCharmsTemplateCharm(ops.CharmBase):
             args: Arguments passed to the CharmBase parent constructor.
         """
         super().__init__(*args)
-        self.framework.observe(self.on.httpbin_pebble_ready, self._on_httpbin_pebble_ready)
+        try:
+            self._charm_state = CharmState.from_charm(charm=self)
+        except CharmConfigInvalidError as exc:
+            self.model.unit.status = ops.BlockedStatus(exc.msg)
+            return
+        self.smtp = smtp.SmtpProvides(self)
+        self.framework.observe(
+            self.on[LEGACY_RELATION_NAME].relation_created, self._on_relation_created
+        )
         self.framework.observe(self.on.config_changed, self._on_config_changed)
+        self.framework.observe(self.on.update_status, self._on_update_status)
 
-    def _on_httpbin_pebble_ready(self, event: ops.PebbleReadyEvent):
-        """Define and start a workload using the Pebble API.
+    def _on_relation_created(self, _) -> None:
+        """Handle a change to the smtp relation."""
+        # A new charm will be instantiated hence, the information will be fetched again.
+        # The relation databags are rewritten in case there are changes.
+        self._update_relations()
 
-        Change this example to suit your needs. You'll need to specify the right entrypoint and
-        environment configuration for your specific workload.
+    def _on_update_status(self, _) -> None:
+        """Handle the update status event."""
+        # A new charm will be instantiated hence, the information will be fetched again.
+        # The relation databags are rewritten in case there are changes.
+        self._update_relations()
 
-        Learn more about interacting with Pebble at at https://juju.is/docs/sdk/pebble.
-
-        Args:
-            event: event triggering the handler.
-        """
-        # Get a reference the container attribute on the PebbleReadyEvent
-        container = event.workload
-        # Add initial Pebble config layer using the Pebble API
-        container.add_layer("httpbin", self._pebble_layer, combine=True)
-        # Make Pebble reevaluate its plan, ensuring any services are started if enabled.
-        container.replan()
-        # Learn more about statuses in the SDK docs:
-        # https://juju.is/docs/sdk/constructs#heading--statuses
+    def _on_config_changed(self, _) -> None:
+        """Handle changes in configuration."""
+        self.unit.status = ops.MaintenanceStatus("Configuring charm")
+        self._update_relations()
         self.unit.status = ops.ActiveStatus()
 
-    def _on_config_changed(self, event: ops.ConfigChangedEvent):
-        """Handle changed configuration.
+    def _update_relations(self) -> None:
+        """Update all SMTP data for the existing relations."""
+        if not self.model.unit.is_leader():
+            return
+        for relation in self.smtp.relations:
+            self.smtp.update_relation_data(relation, self._get_smtp_data())
 
-        Change this example to suit your needs. If you don't need to handle config, you can remove
-        this method.
+    def _get_smtp_data(self) -> smtp.SmtpRelationData:
+        """Get relation data.
 
-        Learn more about config at https://juju.is/docs/sdk/config
-
-        Args:
-            event: event triggering the handler.
+        Returns:
+            SmtpRelationData containing the SMTP details.
         """
-        # Fetch the new config value
-        log_level = self.model.config["log-level"].lower()
-
-        # Do some validation of the configuration option
-        if log_level in VALID_LOG_LEVELS:
-            # The config is good, so update the configuration of the workload
-            container = self.unit.get_container("httpbin")
-            # Verify that we can connect to the Pebble API in the workload container
-            if container.can_connect():
-                # Push an updated layer with the new config
-                container.add_layer("httpbin", self._pebble_layer, combine=True)
-                container.replan()
-
-                logger.debug("Log level for gunicorn changed to '%s'", log_level)
-                self.unit.status = ops.ActiveStatus()
-            else:
-                # We were unable to connect to the Pebble API, so we defer this event
-                event.defer()
-                self.unit.status = ops.WaitingStatus("waiting for Pebble API")
-        else:
-            # In this case, the config option is bad, so block the charm and notify the operator.
-            self.unit.status = ops.BlockedStatus("invalid log level: '{log_level}'")
-
-    @property
-    def _pebble_layer(self):
-        """Return a dictionary representing a Pebble layer."""
-        return {
-            "summary": "httpbin layer",
-            "description": "pebble config layer for httpbin",
-            "services": {
-                "httpbin": {
-                    "override": "replace",
-                    "summary": "httpbin",
-                    "command": "gunicorn -b 0.0.0.0:80 httpbin:app -k gevent",
-                    "startup": "enabled",
-                    "environment": {
-                        "GUNICORN_CMD_ARGS": f"--log-level {self.model.config['log-level']}"
-                    },
-                }
-            },
-        }
+        return smtp.SmtpRelationData(
+            host=self._charm_state.host,
+            port=self._charm_state.port,
+            user=self._charm_state.user,
+            password=self._charm_state.password,
+            auth_type=self._charm_state.auth_type,
+            transport_security=self._charm_state.transport_security,
+            domain=self._charm_state.domain,
+        )
 
 
 if __name__ == "__main__":  # pragma: nocover
-    ops.main.main(IsCharmsTemplateCharm)
+    ops.main.main(SmtpIntegratorOperatorCharm)
