@@ -113,10 +113,10 @@ def test_requirer_charm_does_not_emit_event_id_no_data():
 
 
 @pytest.mark.parametrize("is_leader", [True, False])
-def test_requirer_charm_emits_event(is_leader):
+def test_requirer_charm__with_valid_relation_data_emits_event(is_leader):
     """
     arrange: set up a charm.
-    act: trigger a relation changed event.
+    act: trigger a relation changed event with valid data.
     assert: a event containing the relation data is emitted.
     """
     relation_data = {
@@ -148,3 +148,33 @@ def test_requirer_charm_emits_event(is_leader):
     assert harness.charm.events[0].auth_type == relation_data["auth_type"]
     assert harness.charm.events[0].transport_security == relation_data["transport_security"]
     assert harness.charm.events[0].domain == relation_data["domain"]
+
+
+@pytest.mark.parametrize("is_leader", [True, False])
+def test_requirer_charm__with_valid_relation_data_doesnt_emmit_event(is_leader):
+    """
+    arrange: set up a charm.
+    act: trigger a relation changed event with invalid data.
+    assert: a event containing the relation data is emitted.
+    """
+    relation_data = {
+        "port": "25",
+        "user": "example_user",
+        "password": "somepassword",  # nosec
+        "auth_type": "plain",
+        "transport_security": "tls",
+        "domain": "domain",
+    }
+
+    harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
+    harness.begin()
+    harness.set_leader(is_leader)
+    relation_id = harness.add_relation("smtp-legacy", "smtp-provider")
+    harness.add_relation_unit(relation_id, "smtp-provider/0")
+    harness.update_relation_data(
+        relation_id,
+        "smtp-provider",
+        relation_data,
+    )
+
+    assert len(harness.charm.events) == 0
