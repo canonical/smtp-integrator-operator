@@ -25,6 +25,9 @@ description: |
   For DevOps or SRE teams this charm will make operating any charm leveraging the SMTP
   protocol simple and straightforward through Juju's clean interface.
 
+assumes:
+  - juju >= 3.1
+
 provides:
   smtp:
     interface: smtp
