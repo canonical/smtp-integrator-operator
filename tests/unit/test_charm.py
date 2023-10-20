@@ -105,6 +105,7 @@ def test_legacy_relation_joined_when_leader():
         {
             "host": host,
             "port": port,
+            "password": "somepassword",
         }
     )
     harness.begin()
@@ -114,6 +115,8 @@ def test_legacy_relation_joined_when_leader():
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
     assert data["host"] == harness.charm._charm_state.host
     assert data["port"] == str(harness.charm._charm_state.port)
+    assert data["password"] == str(harness.charm._charm_state.password)
+    assert "password_id" not in data
 
 
 def test_relation_joined_when_leader():
@@ -130,6 +133,7 @@ def test_relation_joined_when_leader():
         {
             "host": host,
             "port": port,
+            "password": "somepassword",
         }
     )
     harness.begin()
@@ -139,6 +143,8 @@ def test_relation_joined_when_leader():
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data["host"] == harness.charm._charm_state.host
     assert data["port"] == str(harness.charm._charm_state.port)
+    assert "password" not in data
+    assert data["password_id"] is not None
 
 
 def test_legacy_relation_joined_when_not_leader():

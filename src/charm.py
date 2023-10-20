@@ -58,8 +58,15 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
     def _on_config_changed(self, _) -> None:
         """Handle changes in configuration."""
         self.unit.status = ops.MaintenanceStatus("Configuring charm")
+        self._store_password_as_secret()
         self._update_relations()
         self.unit.status = ops.ActiveStatus()
+
+    def _store_password_as_secret(self) -> None:
+        """Store the SMTP password as a secret."""
+        if self._charm_state.password:
+            secret = self.app.add_secret({"password": self._charm_state.password})
+            self._charm_state.password_id = secret.id
 
     def _update_relations(self) -> None:
         """Update all SMTP data for the existing relations."""
@@ -68,7 +75,23 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         for relation in self.smtp.relations:
             self.smtp.update_relation_data(relation, self._get_smtp_data())
         for relation in self.smtp_legacy.relations:
-            self.smtp_legacy.update_relation_data(relation, self._get_smtp_data())
+            self.smtp_legacy.update_relation_data(relation, self._get_legacy_smtp_data())
+
+    def _get_legacy_smtp_data(self) -> smtp.SmtpRelationData:
+        """Get relation data.
+
+        Returns:
+            SmtpRelationData containing the SMTP details.
+        """
+        return smtp.SmtpRelationData(
+            host=self._charm_state.host,
+            port=self._charm_state.port,
+            user=self._charm_state.user,
+            password=self._charm_state.password,
+            auth_type=self._charm_state.auth_type,
+            transport_security=self._charm_state.transport_security,
+            domain=self._charm_state.domain,
+        )
 
     def _get_smtp_data(self) -> smtp.SmtpRelationData:
         """Get relation data.
@@ -80,7 +103,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             host=self._charm_state.host,
             port=self._charm_state.port,
             user=self._charm_state.user,
-            password=self._charm_state.password,
+            password_id=self._charm_state.password_id,
             auth_type=self._charm_state.auth_type,
             transport_security=self._charm_state.transport_security,
             domain=self._charm_state.domain,
