@@ -25,9 +25,7 @@ async def test_active(ops_test: OpsTest, app: ops.Application):
 
 @pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_relation(
-    ops_test: OpsTest, app: ops.Application, any_charm: ops.Application
-):
+async def test_relation(ops_test: OpsTest, app: ops.Application, any_charm: ops.Application):
     """Check that the charm is active once related to another charm.
 
     Assume that the charm has already been built and is running.

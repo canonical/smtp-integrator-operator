@@ -28,7 +28,7 @@ juju config smtp-integrator host=smtp.example.com
 By running `juju status --relations` the current state of the deployment can be queried, with the charm eventually reaching `Active` state:
 ```
 Model           Controller          Cloud/Region        Version  SLA          Timestamp
-smtp-tutorial   microk8s-localhost  microk8s/localhost  2.9.44   unsupported  12:54:25+02:00
+smtp-tutorial   microk8s-localhost  microk8s/localhost  3.1.6   unsupported  12:54:25+02:00
 
 App              Version  Status  Scale  Charm            Channel  Rev  Address        Exposed  Message
 smtp-integrator           active      1  smtp-integrator             0  10.152.183.65  no       
