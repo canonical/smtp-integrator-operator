@@ -35,7 +35,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         self.smtp = smtp.SmtpProvides(self)
         self.smtp_legacy = smtp.SmtpProvides(self, relation_name=smtp.LEGACY_RELATION_NAME)
         self.framework.observe(
-            self.on[smtp.LEGACY_RELATION_NAME].relation_created, self._on_relation_created
+            self.on[smtp.LEGACY_RELATION_NAME].relation_created, self._on_legacy_relation_created
         )
         self.framework.observe(
             self.on[smtp.DEFAULT_RELATION_NAME].relation_created, self._on_relation_created
@@ -43,8 +43,21 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         self.framework.observe(self.on.config_changed, self._on_config_changed)
         self.framework.observe(self.on.update_status, self._on_update_status)
 
-    def _on_relation_created(self, _) -> None:
-        """Handle a change to the smtp relation."""
+    def _on_relation_created(self, event: ops.RelationCreatedEvent) -> None:
+        """Handle a change to the smtp relation.
+
+        Args:
+            event: Relation created event.
+        """
+        if secret_id := self._charm_state.password_id:
+            secret = self.model.get_secret(id=secret_id)
+            secret.grant(event.relation)
+        # A new charm will be instantiated hence, the information will be fetched again.
+        # The relation databags are rewritten in case there are changes.
+        self._update_relations()
+
+    def _on_legacy_relation_created(self, _) -> None:
+        """Handle a change to the smtp-legacy relation."""
         # A new charm will be instantiated hence, the information will be fetched again.
         # The relation databags are rewritten in case there are changes.
         self._update_relations()
