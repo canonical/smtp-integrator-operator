@@ -26,6 +26,8 @@ description: |
   protocol simple and straightforward through Juju's clean interface.
 
 provides:
+  smtp:
+    interface: smtp
   smtp-legacy:
     interface: smtp
 

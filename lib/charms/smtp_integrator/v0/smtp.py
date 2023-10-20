@@ -56,7 +56,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 1
+LIBPATCH = 2
 
 # pylint: disable=wrong-import-position
 import logging
@@ -68,7 +68,8 @@ from pydantic import BaseModel, Field, ValidationError
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_RELATION_NAME = "smtp-legacy"
+DEFAULT_RELATION_NAME = "smtp"
+LEGACY_RELATION_NAME = "smtp-legacy"
 
 
 class TransportSecurity(str, Enum):
@@ -107,6 +108,7 @@ class SmtpRelationData(BaseModel):
         port: The port of the outgoing SMTP relay.
         user: The SMTP AUTH user to use for the outgoing SMTP relay.
         password: The SMTP AUTH password to use for the outgoing SMTP relay.
+        password_id: The secret ID where the SMTP AUTH password for the SMTP relay is stored.
         auth_type: The type used to authenticate with the SMTP relay.
         transport_security: The security protocol to use for the outgoing SMTP relay.
         domain: The domain used by the sent emails from SMTP relay.
@@ -116,6 +118,7 @@ class SmtpRelationData(BaseModel):
     port: int = Field(None, ge=1, le=65536)
     user: Optional[str]
     password: Optional[str]
+    password_id: Optional[str]
     auth_type: AuthType
     transport_security: TransportSecurity
     domain: Optional[str]
@@ -138,6 +141,8 @@ class SmtpRelationData(BaseModel):
             result["user"] = self.user
         if self.password:
             result["password"] = self.password
+        if self.password_id:
+            result["password_id"] = self.password_id
         return result
 
 
@@ -149,6 +154,7 @@ class SmtpDataAvailableEvent(ops.RelationEvent):
         port: The port of the outgoing SMTP relay.
         user: The SMTP AUTH user to use for the outgoing SMTP relay.
         password: The SMTP AUTH password to use for the outgoing SMTP relay.
+        password_id: The secret ID where the SMTP AUTH password for the SMTP relay is stored.
         auth_type: The type used to authenticate with the SMTP relay.
         transport_security: The security protocol to use for the outgoing SMTP relay.
         domain: The domain used by the sent emails from SMTP relay.
@@ -177,6 +183,12 @@ class SmtpDataAvailableEvent(ops.RelationEvent):
         """Fetch the SMTP password from the relation."""
         assert self.relation.app
         return self.relation.data[self.relation.app].get("password")
+
+    @property
+    def password_id(self) -> str:
+        """Fetch the SMTP password from the relation."""
+        assert self.relation.app
+        return self.relation.data[self.relation.app].get("password_id")
 
     @property
     def auth_type(self) -> str:
@@ -247,6 +259,7 @@ class SmtpRequires(ops.Object):
                 port=relation_data.get("port"),
                 user=relation_data.get("user"),
                 password=relation_data.get("password"),
+                password_id=relation_data.get("password_id"),
                 auth_type=relation_data.get("auth_type"),
                 transport_security=relation_data.get("transport_security"),
                 domain=relation_data.get("domain"),

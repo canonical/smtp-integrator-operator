@@ -3,8 +3,6 @@
 # Copyright 2023 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# Learn more at: https://juju.is/docs/sdk
-
 """SMTP Integrator Charm service."""
 
 import logging
@@ -15,8 +13,6 @@ from charms.smtp_integrator.v0 import smtp
 from charm_state import CharmConfigInvalidError, CharmState
 
 logger = logging.getLogger(__name__)
-
-LEGACY_RELATION_NAME = "smtp-legacy"
 
 VALID_LOG_LEVELS = ["info", "debug", "warning", "error", "critical"]
 
@@ -37,8 +33,12 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             self.model.unit.status = ops.BlockedStatus(exc.msg)
             return
         self.smtp = smtp.SmtpProvides(self)
+        self.smtp_legacy = smtp.SmtpProvides(self, relation_name=smtp.LEGACY_RELATION_NAME)
         self.framework.observe(
-            self.on[LEGACY_RELATION_NAME].relation_created, self._on_relation_created
+            self.on[smtp.LEGACY_RELATION_NAME].relation_created, self._on_relation_created
+        )
+        self.framework.observe(
+            self.on[smtp.DEFAULT_RELATION_NAME].relation_created, self._on_relation_created
         )
         self.framework.observe(self.on.config_changed, self._on_config_changed)
         self.framework.observe(self.on.update_status, self._on_update_status)
@@ -67,6 +67,8 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             return
         for relation in self.smtp.relations:
             self.smtp.update_relation_data(relation, self._get_smtp_data())
+        for relation in self.smtp_legacy.relations:
+            self.smtp_legacy.update_relation_data(relation, self._get_smtp_data())
 
     def _get_smtp_data(self) -> smtp.SmtpRelationData:
         """Get relation data.

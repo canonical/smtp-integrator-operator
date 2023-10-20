@@ -91,7 +91,7 @@ def test_charm_reaches_active_status():
     assert harness.model.unit.status == ops.ActiveStatus()
 
 
-def test_relation_joined_when_leader():
+def test_legacy_relation_joined_when_leader():
     """
     arrange: set up a configured charm and set leadership for the unit.
     act: add a relation.
@@ -116,7 +116,32 @@ def test_relation_joined_when_leader():
     assert data["port"] == str(harness.charm._charm_state.port)
 
 
-def test_relation_joined_when_not_leader():
+def test_relation_joined_when_leader():
+    """
+    arrange: set up a configured charm and set leadership for the unit.
+    act: add a relation.
+    assert: the relation gets populated with the SMTP data.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    host = "smtp.example"
+    port = 25
+    harness.update_config(
+        {
+            "host": host,
+            "port": port,
+        }
+    )
+    harness.begin()
+    harness.charm.on.config_changed.emit()
+    assert harness.model.unit.status == ops.ActiveStatus()
+    harness.add_relation("smtp", "indico")
+    data = harness.model.get_relation("smtp").data[harness.model.app]
+    assert data["host"] == harness.charm._charm_state.host
+    assert data["port"] == str(harness.charm._charm_state.port)
+
+
+def test_legacy_relation_joined_when_not_leader():
     """
     arrange: set up a charm and unset leadership for the unit.
     act: add a relation.
@@ -137,4 +162,28 @@ def test_relation_joined_when_not_leader():
     assert harness.model.unit.status == ops.ActiveStatus()
     harness.add_relation("smtp-legacy", "indico")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
+    assert data == {}
+
+
+def test_relation_joined_when_not_leader():
+    """
+    arrange: set up a charm and unset leadership for the unit.
+    act: add a relation.
+    assert: the relation does not get populated with the SMTP data.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(False)
+    host = "smtp.example"
+    port = 25
+    harness.update_config(
+        {
+            "host": host,
+            "port": port,
+        }
+    )
+    harness.begin()
+    harness.charm.on.config_changed.emit()
+    assert harness.model.unit.status == ops.ActiveStatus()
+    harness.add_relation("smtp", "indico")
+    data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data == {}
