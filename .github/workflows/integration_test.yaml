@@ -21,4 +21,5 @@ jobs:
       zap-rules-file-name: "zap_rules.tsv"
       trivy-fs-enabled: true
       trivy-image-config: "trivy.yaml"
+      channel: 1.28-strict/stable
       juju-channel: 3.1/stable
