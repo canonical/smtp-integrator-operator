@@ -111,7 +111,7 @@ def test_legacy_relation_joined_when_leader():
     harness.begin()
     harness.charm.on.config_changed.emit()
     assert harness.model.unit.status == ops.ActiveStatus()
-    harness.add_relation("smtp-legacy", "indico")
+    harness.add_relation("smtp-legacy", "example")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
     assert data["host"] == harness.charm._charm_state.host
     assert data["port"] == str(harness.charm._charm_state.port)
@@ -139,7 +139,7 @@ def test_relation_joined_when_leader():
     harness.begin()
     harness.charm.on.config_changed.emit()
     assert harness.model.unit.status == ops.ActiveStatus()
-    harness.add_relation("smtp", "indico")
+    harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data["host"] == harness.charm._charm_state.host
     assert data["port"] == str(harness.charm._charm_state.port)
@@ -166,7 +166,7 @@ def test_legacy_relation_joined_when_not_leader():
     harness.begin()
     harness.charm.on.config_changed.emit()
     assert harness.model.unit.status == ops.ActiveStatus()
-    harness.add_relation("smtp-legacy", "indico")
+    harness.add_relation("smtp-legacy", "example")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
     assert data == {}
 
@@ -190,6 +190,6 @@ def test_relation_joined_when_not_leader():
     harness.begin()
     harness.charm.on.config_changed.emit()
     assert harness.model.unit.status == ops.ActiveStatus()
-    harness.add_relation("smtp", "indico")
+    harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data == {}
