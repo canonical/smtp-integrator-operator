@@ -75,6 +75,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
     def _store_password_as_secret(self) -> None:
         """Store the SMTP password as a secret."""
         if self._charm_state.password:
+            # Note https://github.com/juju/python-libjuju/issues/970
             secret = self.app.add_secret({"password": self._charm_state.password})
             self._charm_state.password_id = secret.id
 
