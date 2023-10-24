@@ -41,32 +41,29 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             self.on[smtp.DEFAULT_RELATION_NAME].relation_created, self._on_relation_created
         )
         self.framework.observe(self.on.config_changed, self._on_config_changed)
-        self.framework.observe(self.on.update_status, self._on_update_status)
 
     def _on_relation_created(self, event: ops.RelationCreatedEvent) -> None:
         """Handle a change to the smtp relation.
 
         Args:
-            event: Relation created event.
+            event: relation created event.
         """
+        if not self.model.unit.is_leader():
+            return
         if secret_id := self._charm_state.password_id:
             secret = self.model.get_secret(id=secret_id)
             secret.grant(event.relation)
-        # A new charm will be instantiated hence, the information will be fetched again.
-        # The relation databags are rewritten in case there are changes.
-        self._update_relations()
+        self._update_saml_relation(event.relation)
 
-    def _on_legacy_relation_created(self, _) -> None:
-        """Handle a change to the smtp-legacy relation."""
-        # A new charm will be instantiated hence, the information will be fetched again.
-        # The relation databags are rewritten in case there are changes.
-        self._update_relations()
+    def _on_legacy_relation_created(self, event: ops.RelationCreatedEvent) -> None:
+        """Handle a change to the smtp-legacy relation.
 
-    def _on_update_status(self, _) -> None:
-        """Handle the update status event."""
-        # A new charm will be instantiated hence, the information will be fetched again.
-        # The relation databags are rewritten in case there are changes.
-        self._update_relations()
+        Args:
+            event: relation created event.
+        """
+        if not self.model.unit.is_leader():
+            return
+        self._update_saml_legacy_relation(event.relation)
 
     def _on_config_changed(self, _) -> None:
         """Handle changes in configuration."""
@@ -86,9 +83,25 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         if not self.model.unit.is_leader():
             return
         for relation in self.smtp.relations:
-            self.smtp.update_relation_data(relation, self._get_smtp_data())
+            self._update_saml_relation(relation)
         for relation in self.smtp_legacy.relations:
-            self.smtp_legacy.update_relation_data(relation, self._get_legacy_smtp_data())
+            self._update_saml_legacy_relation(relation)
+
+    def _update_saml_relation(self, relation: ops.Relation) -> None:
+        """Update the saml relation databag.
+
+        Args:
+            relation: the relation for which to update the databag.
+        """
+        self.smtp.update_relation_data(relation, self._get_smtp_data())
+
+    def _update_saml_legacy_relation(self, relation: ops.Relation) -> None:
+        """Update the saml-legacy relation databag.
+
+        Args:
+            relation: the relation for which to update the databag.
+        """
+        self.smtp.update_relation_data(relation, self._get_legacy_smtp_data())
 
     def _get_legacy_smtp_data(self) -> smtp.SmtpRelationData:
         """Get relation data.

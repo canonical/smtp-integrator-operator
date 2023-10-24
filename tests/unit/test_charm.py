@@ -101,11 +101,12 @@ def test_legacy_relation_joined_when_leader():
     harness.set_leader(True)
     host = "smtp.example"
     port = 25
+    password = "somepassword"  # nosec
     harness.update_config(
         {
             "host": host,
             "port": port,
-            "password": "somepassword",
+            "password": password,
         }
     )
     harness.begin()
@@ -113,9 +114,9 @@ def test_legacy_relation_joined_when_leader():
     assert harness.model.unit.status == ops.ActiveStatus()
     harness.add_relation("smtp-legacy", "example")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
-    assert data["host"] == harness.charm._charm_state.host
-    assert data["port"] == str(harness.charm._charm_state.port)
-    assert data["password"] == str(harness.charm._charm_state.password)
+    assert data["host"] == host
+    assert data["port"] == str(port)
+    assert data["password"] == password
     assert "password_id" not in data
 
 
@@ -129,11 +130,12 @@ def test_relation_joined_when_leader():
     harness.set_leader(True)
     host = "smtp.example"
     port = 25
+    password = "somepassword"  # nosec
     harness.update_config(
         {
             "host": host,
             "port": port,
-            "password": "somepassword",
+            "password": password,
         }
     )
     harness.begin()
@@ -141,10 +143,37 @@ def test_relation_joined_when_leader():
     assert harness.model.unit.status == ops.ActiveStatus()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
-    assert data["host"] == harness.charm._charm_state.host
-    assert data["port"] == str(harness.charm._charm_state.port)
+    assert data["host"] == host
+    assert data["port"] == str(port)
     assert "password" not in data
     assert data["password_id"] is not None
+
+
+def test_relation_joined_when_leader_and_no_password():
+    """
+    arrange: set up a configured charm and set leadership for the unit.
+    act: add a relation.
+    assert: the relation gets populated with the SMTP data.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    host = "smtp.example"
+    port = 25
+    harness.update_config(
+        {
+            "host": host,
+            "port": port,
+        }
+    )
+    harness.begin()
+    harness.charm.on.config_changed.emit()
+    assert harness.model.unit.status == ops.ActiveStatus()
+    harness.add_relation("smtp", "example")
+    data = harness.model.get_relation("smtp").data[harness.model.app]
+    assert data["host"] == host
+    assert data["port"] == str(port)
+    assert "password" not in data
+    assert "password_id" not in data
 
 
 def test_legacy_relation_joined_when_not_leader():
