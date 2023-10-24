@@ -8,11 +8,16 @@ jobs:
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
-      chaos-app-label: app.kubernetes.io/name=smtp-integrator
-      chaos-enabled: false
-      chaos-experiments: pod-delete
-      load-test-enabled: false
       trivy-fs-enabled: true
       trivy-image-config: "trivy.yaml"
       channel: 1.28-strict/stable
       juju-channel: 3.1/stable
+  integration-tests-juju2:
+    name: Integration test with juju 2.9
+    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    secrets: inherit
+    with:
+      channel: 1.28/stable
+      juju-channel: 2.9/stable
+      pre-run-script: scripts/pre-integration-test.sh
+      test-tox-env: integration-juju-2
