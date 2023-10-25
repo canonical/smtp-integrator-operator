@@ -7,7 +7,6 @@ SMTP Integrator Charm service.
 
 **Global Variables**
 ---------------
-- **LEGACY_RELATION_NAME**
 - **VALID_LOG_LEVELS**
 
 
@@ -16,7 +15,7 @@ SMTP Integrator Charm service.
 ## <kbd>class</kbd> `SmtpIntegratorOperatorCharm`
 Charm the service. 
 
-<a href="../src/charm.py#L27"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/charm.py#L23"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>function</kbd> `__init__`
 

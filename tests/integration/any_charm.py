@@ -24,3 +24,4 @@ class AnyCharm(AnyCharmBase):  # pylint: disable=too-few-public-methods
         """
         super().__init__(*args, **kwargs)
         self.smtp = smtp.SmtpRequires(self)
+        self.smtp_legacy = smtp.SmtpRequires(self, relation_name=smtp.LEGACY_RELATION_NAME)
