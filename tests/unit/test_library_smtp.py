@@ -219,7 +219,7 @@ def test_requirer_charm_with_invalid_relation_data_doesnt_emit_event(is_leader):
     """
     arrange: set up a charm.
     act: trigger a relation changed event with invalid data.
-    assert: a event containing the relation data is not emitted.
+    assert: an event containing the relation data is not emitted.
     """
     relation_data = {
         "port": "25",
