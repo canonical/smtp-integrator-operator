@@ -12,9 +12,10 @@ from pytest_operator.plugin import OpsTest
 @pytest.mark.asyncio
 @pytest.mark.abort_on_fail
 async def test_active(ops_test: OpsTest, app: ops.Application):
-    """Check that the charm is active.
-
-    Assume that the charm has already been built and is running.
+    """
+    arrange: deploy the charm.
+    act: configure the charm.
+    assert: the charm reaches active status.
     """
     await app.set_config({"host": "smtp.example"})  # type: ignore[attr-defined]
     status_name = ops.ActiveStatus.name  # type: ignore[has-type]
@@ -26,9 +27,10 @@ async def test_active(ops_test: OpsTest, app: ops.Application):
 @pytest.mark.asyncio
 @pytest.mark.abort_on_fail
 async def test_relation(ops_test: OpsTest, app: ops.Application, any_charm: ops.Application):
-    """Check that the charm is active once related to another charm.
-
-    Assume that the charm has already been built and is running.
+    """
+    arrange: deploy the charm.
+    act: integrate the charm through the smtp relation and configure it.
+    assert: the charm reaches active status.
     """
     assert ops_test.model
     relation_name = f"{app.name}:smtp"
@@ -44,9 +46,10 @@ async def test_relation(ops_test: OpsTest, app: ops.Application, any_charm: ops.
 async def test_legacy_relation(
     ops_test: OpsTest, app: ops.Application, any_charm: ops.Application
 ):
-    """Check that the charm is active once related to another charm.
-
-    Assume that the charm has already been built and is running.
+    """
+    arrange: deploy the charm.
+    act: integrate the charm through the smtp-legacy relation and configure it.
+    assert: the charm reaches active status.
     """
     assert ops_test.model
     relation_name = f"{app.name}:smtp-legacy"
