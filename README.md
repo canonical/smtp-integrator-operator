@@ -30,7 +30,7 @@ fixes and constructive feedback.
 * [Get support](https://discourse.charmhub.io/)
 * [Join our online chat](https://chat.charmhub.io/charmhub/channels/charm-dev)
 * [Contribute](https://charmhub.io/smtp-integrator/docs/how-to-contribute)
-Thinking about using the Indico Operator for your next project? [Get in touch](https://chat.charmhub.io/charmhub/channels/charm-dev)!
+Thinking about using the SMTP Integrator Operator for your next project? [Get in touch](https://chat.charmhub.io/charmhub/channels/charm-dev)!
 
 ## Contributing to this documentation
 
