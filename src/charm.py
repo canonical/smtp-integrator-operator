@@ -74,7 +74,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
 
     def _store_password_as_secret(self) -> None:
         """Store the SMTP password as a secret."""
-        if self._charm_state.password:
+        if self._charm_state.password and self._has_secrets():
             # Note https://github.com/juju/python-libjuju/issues/970
             secret = self.app.add_secret({"password": self._charm_state.password})
             self._charm_state.password_id = secret.id
@@ -94,7 +94,8 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         Args:
             relation: the relation for which to update the databag.
         """
-        self.smtp.update_relation_data(relation, self._get_smtp_data())
+        if self._has_secrets():
+            self.smtp.update_relation_data(relation, self._get_smtp_data())
 
     def _update_saml_legacy_relation(self, relation: ops.Relation) -> None:
         """Update the saml-legacy relation databag.
@@ -135,6 +136,15 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             transport_security=self._charm_state.transport_security,
             domain=self._charm_state.domain,
         )
+
+    def _has_secrets(self) -> bool:
+        """Check if current Juju version supports secrets.
+
+        Returns:
+            If secrets are supported or not.
+        """
+        juju_version = ops.JujuVersion.from_environ()
+        return juju_version.has_secrets
 
 
 if __name__ == "__main__":  # pragma: nocover
