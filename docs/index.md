@@ -27,4 +27,3 @@ fixes and constructive feedback.
 * [Join our online chat](https://chat.charmhub.io/charmhub/channels/charm-dev)
 * [Contribute](https://charmhub.io/saml-integrator/docs/how-to-contribute)
 Thinking about using the SAML Integrator Operator for your next project? [Get in touch](https://chat.charmhub.io/charmhub/channels/charm-dev)!
-
