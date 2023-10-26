@@ -19,5 +19,4 @@ jobs:
     with:
       channel: 1.28/stable
       juju-channel: 2.9/stable
-      pre-run-script: scripts/pre-integration-test.sh
       test-tox-env: integration-juju-2
