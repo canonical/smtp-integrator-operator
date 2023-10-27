@@ -58,7 +58,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 2
+LIBPATCH = 3
 
 # pylint: disable=wrong-import-position
 import logging
@@ -193,16 +193,16 @@ class SmtpDataAvailableEvent(ops.RelationEvent):
         return self.relation.data[self.relation.app].get("password_id")
 
     @property
-    def auth_type(self) -> str:
+    def auth_type(self) -> AuthType:
         """Fetch the SMTP auth type from the relation."""
         assert self.relation.app
-        return self.relation.data[self.relation.app].get("auth_type")
+        return AuthType(self.relation.data[self.relation.app].get("auth_type"))
 
     @property
-    def transport_security(self) -> str:
+    def transport_security(self) -> TransportSecurity:
         """Fetch the SMTP transport security protocol from the relation."""
         assert self.relation.app
-        return self.relation.data[self.relation.app].get("transport_security")
+        return TransportSecurity(self.relation.data[self.relation.app].get("transport_security"))
 
     @property
     def domain(self) -> str:
