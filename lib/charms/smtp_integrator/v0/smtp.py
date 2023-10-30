@@ -63,7 +63,7 @@ LIBPATCH = 2
 # pylint: disable=wrong-import-position
 import logging
 from enum import Enum
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 import ops
 from pydantic import BaseModel, Field, ValidationError
@@ -306,7 +306,7 @@ class SmtpProvides(ops.Object):
         self.relation_name = relation_name
 
     @property
-    def relations(self) -> list[ops.Relation]:
+    def relations(self) -> List[ops.Relation]:
         """The list of Relation instances associated with this relation_name.
 
         Returns:
