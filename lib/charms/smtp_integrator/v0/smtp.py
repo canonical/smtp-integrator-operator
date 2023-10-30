@@ -58,12 +58,12 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 1
+LIBPATCH = 2
 
 # pylint: disable=wrong-import-position
 import logging
 from enum import Enum
-from typing import Optional
+from typing import Dict, Optional
 
 import ops
 from pydantic import BaseModel, Field, ValidationError
@@ -125,7 +125,7 @@ class SmtpRelationData(BaseModel):
     transport_security: TransportSecurity
     domain: Optional[str]
 
-    def to_relation_data(self) -> dict[str, str]:
+    def to_relation_data(self) -> Dict[str, str]:
         """Convert an instance of SmtpRelationData to the relation representation.
 
         Returns:
