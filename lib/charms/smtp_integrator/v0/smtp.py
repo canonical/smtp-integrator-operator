@@ -244,7 +244,7 @@ class SmtpRequires(ops.Object):
         self.relation_name = relation_name
         self.framework.observe(charm.on[relation_name].relation_changed, self._on_relation_changed)
 
-    def get_relation_data(self) -> SmtpRelationData:
+    def get_relation_data(self) -> Optional[SmtpRelationData]:
         """Retrieve the relation data.
 
         Returns:
@@ -252,7 +252,7 @@ class SmtpRequires(ops.Object):
         """
         relation = self.model.get_relation(self.relation_name)
         assert relation
-        return self._get_relation_data_from_relation(relation)
+        return self._get_relation_data_from_relation(relation) if relation else None
 
     def _get_relation_data_from_relation(self, relation: ops.Relation) -> SmtpRelationData:
         """Retrieve the relation data.
