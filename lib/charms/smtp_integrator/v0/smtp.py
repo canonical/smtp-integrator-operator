@@ -251,7 +251,6 @@ class SmtpRequires(ops.Object):
             SmtpRelationData: the relation data.
         """
         relation = self.model.get_relation(self.relation_name)
-        assert relation
         return self._get_relation_data_from_relation(relation) if relation else None
 
     def _get_relation_data_from_relation(self, relation: ops.Relation) -> SmtpRelationData:
