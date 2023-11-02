@@ -175,6 +175,15 @@ def test_legacy_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     assert harness.charm.events[0].transport_security == relation_data["transport_security"]
     assert harness.charm.events[0].domain == relation_data["domain"]
 
+    retrieved_relation_data = harness.charm.smtp_legacy.get_relation_data()
+    assert retrieved_relation_data.host == relation_data["host"]
+    assert retrieved_relation_data.port == int(relation_data["port"])
+    assert retrieved_relation_data.user == relation_data["user"]
+    assert retrieved_relation_data.password == relation_data["password"]
+    assert retrieved_relation_data.auth_type == relation_data["auth_type"]
+    assert retrieved_relation_data.transport_security == relation_data["transport_security"]
+    assert retrieved_relation_data.domain == relation_data["domain"]
+
 
 @pytest.mark.parametrize("is_leader", [True, False])
 def test_requirer_charm_with_valid_relation_data_emits_event(is_leader):
