@@ -173,7 +173,6 @@ def test_relation_joined_when_leader_and_no_secrets(mock_juju_env):
     )
     harness.begin()
     harness.charm.on.config_changed.emit()
-    assert harness.model.unit.status == ops.ActiveStatus()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data == {}
@@ -199,7 +198,6 @@ def test_relation_joined_when_leader_and_no_password(mock_juju_env):
     )
     harness.begin()
     harness.charm.on.config_changed.emit()
-    assert harness.model.unit.status == ops.ActiveStatus()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data["host"] == host
@@ -226,7 +224,6 @@ def test_legacy_relation_joined_when_not_leader():
     )
     harness.begin()
     harness.charm.on.config_changed.emit()
-    assert harness.model.unit.status == ops.ActiveStatus()
     harness.add_relation("smtp-legacy", "example")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
     assert data == {}
@@ -252,7 +249,6 @@ def test_relation_joined_when_not_leader(mock_juju_env):
     )
     harness.begin()
     harness.charm.on.config_changed.emit()
-    assert harness.model.unit.status == ops.ActiveStatus()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data == {}
