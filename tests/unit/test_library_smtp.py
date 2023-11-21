@@ -106,7 +106,7 @@ def test_smtp_relation_data_to_relation_data():
     assert relation_data == expected_relation_data
 
 
-def test_legacy_requirer_charm_does_not_emit_event_id_no_data():
+def test_legacy_requirer_charm_does_not_emit_event_id_when_no_data():
     """
     arrange: set up a charm with no relation data to be populated.
     act: trigger a relation changed event.
@@ -115,14 +115,13 @@ def test_legacy_requirer_charm_does_not_emit_event_id_no_data():
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(True)
-    relation_id = harness.add_relation("smtp-legacy", "smtp-provider")
-    harness.add_relation_unit(relation_id, "smtp-provider/0")
+    harness.add_relation("smtp-legacy", "smtp-provider")
     relation = harness.charm.framework.model.get_relation("smtp-legacy", 0)
     harness.charm.on.smtp_legacy_relation_changed.emit(relation)
     assert len(harness.charm.events) == 0
 
 
-def test_requirer_charm_does_not_emit_event_id_no_data():
+def test_requirer_charm_does_not_emit_event_id_when_no_data():
     """
     arrange: set up a charm with no relation data to be populated.
     act: trigger a relation changed event.
@@ -131,8 +130,7 @@ def test_requirer_charm_does_not_emit_event_id_no_data():
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(True)
-    relation_id = harness.add_relation("smtp", "smtp-provider")
-    harness.add_relation_unit(relation_id, "smtp-provider/0")
+    harness.add_relation("smtp", "smtp-provider")
     relation = harness.charm.framework.model.get_relation("smtp", 0)
     harness.charm.on.smtp_legacy_relation_changed.emit(relation)
     assert len(harness.charm.events) == 0
@@ -158,13 +156,7 @@ def test_legacy_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(is_leader)
-    relation_id = harness.add_relation("smtp-legacy", "smtp-provider")
-    harness.add_relation_unit(relation_id, "smtp-provider/0")
-    harness.update_relation_data(
-        relation_id,
-        "smtp-provider",
-        relation_data,
-    )
+    harness.add_relation("smtp-legacy", "smtp-provider", app_data=relation_data)
 
     assert len(harness.charm.events) == 1
     assert harness.charm.events[0].host == relation_data["host"]
@@ -205,13 +197,7 @@ def test_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(is_leader)
-    relation_id = harness.add_relation("smtp", "smtp-provider")
-    harness.add_relation_unit(relation_id, "smtp-provider/0")
-    harness.update_relation_data(
-        relation_id,
-        "smtp-provider",
-        relation_data,
-    )
+    harness.add_relation("smtp", "smtp-provider", app_data=relation_data)
 
     assert len(harness.charm.events) == 1
     assert harness.charm.events[0].host == relation_data["host"]
@@ -242,12 +228,6 @@ def test_requirer_charm_with_invalid_relation_data_doesnt_emit_event(is_leader):
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(is_leader)
-    relation_id = harness.add_relation("smtp-legacy", "smtp-provider")
-    harness.add_relation_unit(relation_id, "smtp-provider/0")
-    harness.update_relation_data(
-        relation_id,
-        "smtp-provider",
-        relation_data,
-    )
+    harness.add_relation("smtp-legacy", "smtp-provider", app_data=relation_data)
 
     assert len(harness.charm.events) == 0

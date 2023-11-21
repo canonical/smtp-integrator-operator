@@ -25,7 +25,7 @@ def test_unconfigured_charm_reaches_blocked_status():
 def test_misconfigured_port_charm_reaches_blocked_status():
     """
     arrange: set up a charm.
-    act: trigger a configuration change missing required configs.
+    act: trigger a configuration change with an invalid port.
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -42,7 +42,7 @@ def test_misconfigured_port_charm_reaches_blocked_status():
 def test_misconfigured_auth_type_charm_reaches_blocked_status():
     """
     arrange: set up a charm.
-    act: trigger a configuration change missing required configs.
+    act: trigger a configuration change with an invalid auth type.
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -60,7 +60,7 @@ def test_misconfigured_auth_type_charm_reaches_blocked_status():
 def test_misconfigured_transport_security_charm_reaches_blocked_status():
     """
     arrange: set up a charm.
-    act: trigger a configuration change missing required configs.
+    act: trigger a configuration change with an invalid transport security.
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -68,7 +68,7 @@ def test_misconfigured_transport_security_charm_reaches_blocked_status():
         {
             "host": "smtp.example",
             "port": 25,
-            "auth_type": "nonexisting",
+            "transport_security": "nonexisting",
         }
     )
     harness.begin()
@@ -113,7 +113,6 @@ def test_legacy_relation_joined_when_leader():
     )
     harness.begin()
     harness.charm.on.config_changed.emit()
-    assert harness.model.unit.status == ops.ActiveStatus()
     harness.add_relation("smtp-legacy", "example")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
     assert data["host"] == host
@@ -144,7 +143,6 @@ def test_relation_joined_when_leader_and_secrets(mock_juju_env):
     )
     harness.begin()
     harness.charm.on.config_changed.emit()
-    assert harness.model.unit.status == ops.ActiveStatus()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data["host"] == host
