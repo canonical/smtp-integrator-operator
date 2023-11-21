@@ -76,6 +76,45 @@ class SmtpProviderCharm(ops.CharmBase):
         self.events.append(event)
 
 
+def test_smtp_provider_charm_realtions():
+    """
+    arrange: instantiate a SmtpProviderCharm and add a relation.
+    act: obtain the relations.
+    assert: the relations retrieved match the existing relations.
+    """
+    harness = Harness(SmtpProviderCharm, meta=PROVIDER_METADATA)
+    harness.begin()
+    harness.set_leader(True)
+    harness.add_relation("smtp-legacy", "smtp-provider")
+    assert len(harness.charm.smtp_legacy.relations) == 1
+    assert len(harness.charm.smtp.relations) == 0
+
+
+def test_smtp_provider_update_relation_data():
+    """
+    arrange: instantiate a SmtpProviderCharm object and add a relation.
+    act: update the relation data.
+    assert: the relation data is updated.
+    """
+    harness = Harness(SmtpProviderCharm, meta=PROVIDER_METADATA)
+    harness.begin()
+    harness.set_leader(True)
+    harness.add_relation("smtp-legacy", "smtp-provider")
+    relation = harness.model.get_relation("smtp-legacy")
+    smtp_data = smtp.SmtpRelationData(
+        host="example.smtp",
+        port=25,
+        auth_type="plain",
+        transport_security="tls",
+    )
+    harness.charm.smtp_legacy.update_relation_data(relation, smtp_data)
+    data = relation.data[harness.model.app]
+    assert data["host"] == smtp_data.host
+    assert data["port"] == str(smtp_data.port)
+    assert data["auth_type"] == smtp_data.auth_type
+    assert data["transport_security"] == smtp_data.transport_security
+
+
 def test_smtp_relation_data_to_relation_data():
     """
     arrange: instantiate a SmtpRelationData object.
