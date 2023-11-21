@@ -14,7 +14,7 @@ be shared via the integration.
 
 ```python
 
-from charms.smtp_integrator.v0 import SmtpDataAvailableEvent, SmtpRequires
+from charms.smtp_integrator.v0.smtp import SmtpDataAvailableEvent, SmtpRequires
 
 class SmtpRequirerCharm(ops.CharmBase):
     def __init__(self, *args):
@@ -36,7 +36,7 @@ which new SMTP data has been added or updated.
 Following the previous example, this is an example of the provider charm.
 
 ```python
-from charms.smtp_integrator.v0 import SmtpDataAvailableEvent, SmtpProvides
+from charms.smtp_integrator.v0.smtp import SmtpProvides
 
 class SmtpProviderCharm(ops.CharmBase):
     def __init__(self, *args):

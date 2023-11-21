@@ -53,7 +53,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         if secret_id := self._charm_state.password_id:
             secret = self.model.get_secret(id=secret_id)
             secret.grant(event.relation)
-        self._update_saml_relation(event.relation)
+        self._update_smtp_relation(event.relation)
 
     def _on_legacy_relation_created(self, event: ops.RelationCreatedEvent) -> None:
         """Handle a change to the smtp-legacy relation.
@@ -63,7 +63,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         """
         if not self.model.unit.is_leader():
             return
-        self._update_saml_legacy_relation(event.relation)
+        self._update_smtp_legacy_relation(event.relation)
 
     def _on_config_changed(self, _) -> None:
         """Handle changes in configuration."""
@@ -84,12 +84,12 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         if not self.model.unit.is_leader():
             return
         for relation in self.smtp.relations:
-            self._update_saml_relation(relation)
+            self._update_smtp_relation(relation)
         for relation in self.smtp_legacy.relations:
-            self._update_saml_legacy_relation(relation)
+            self._update_smtp_legacy_relation(relation)
 
-    def _update_saml_relation(self, relation: ops.Relation) -> None:
-        """Update the saml relation databag.
+    def _update_smtp_relation(self, relation: ops.Relation) -> None:
+        """Update the smtp relation databag.
 
         Args:
             relation: the relation for which to update the databag.
@@ -97,8 +97,8 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         if self._has_secrets():
             self.smtp.update_relation_data(relation, self._get_smtp_data())
 
-    def _update_saml_legacy_relation(self, relation: ops.Relation) -> None:
-        """Update the saml-legacy relation databag.
+    def _update_smtp_legacy_relation(self, relation: ops.Relation) -> None:
+        """Update the smtp-legacy relation databag.
 
         Args:
             relation: the relation for which to update the databag.
