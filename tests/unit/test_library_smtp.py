@@ -76,7 +76,7 @@ class SmtpProviderCharm(ops.CharmBase):
         self.events.append(event)
 
 
-def test_smtp_provider_charm_realtions():
+def test_smtp_provider_charm_relations():
     """
     arrange: instantiate a SmtpProviderCharm and add a relation.
     act: obtain the relations.
