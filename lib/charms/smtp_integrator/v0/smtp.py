@@ -58,9 +58,10 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 4
+LIBPATCH = 5
 
 # pylint: disable=wrong-import-position
+import itertools
 import logging
 from enum import Enum
 from typing import Dict, List, Optional
@@ -287,7 +288,12 @@ class SmtpRequires(ops.Object):
         try:
             _ = self._get_relation_data_from_relation(relation)
             return True
-        except ValidationError:
+        except ValidationError as ex:
+            error_fields = set(
+                itertools.chain.from_iterable(error["loc"] for error in ex.errors())
+            )
+            error_field_str = " ".join(f"{f}" for f in error_fields)
+            logger.warning("Error validation the relation data %s", error_field_str)
             return False
 
     def _on_relation_changed(self, event: ops.RelationChangedEvent) -> None:
