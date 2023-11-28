@@ -13,8 +13,8 @@ from charm import SmtpIntegratorOperatorCharm
 
 def test_unconfigured_charm_reaches_blocked_status():
     """
-    arrange: set up a charm.
-    act: trigger a configuration change missing required configs.
+    arrange: set up a charm without configuration.
+    act: none
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -24,8 +24,8 @@ def test_unconfigured_charm_reaches_blocked_status():
 
 def test_misconfigured_port_charm_reaches_blocked_status():
     """
-    arrange: set up a charm.
-    act: trigger a configuration change with an invalid port.
+    arrange: set up a charm with an invalid port.
+    act: none
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -41,8 +41,8 @@ def test_misconfigured_port_charm_reaches_blocked_status():
 
 def test_misconfigured_auth_type_charm_reaches_blocked_status():
     """
-    arrange: set up a charm.
-    act: trigger a configuration change with an invalid auth type.
+    arrange: set up a charm ith an invalid auth type.
+    act: none
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -59,8 +59,8 @@ def test_misconfigured_auth_type_charm_reaches_blocked_status():
 
 def test_misconfigured_transport_security_charm_reaches_blocked_status():
     """
-    arrange: set up a charm.
-    act: trigger a configuration change with an invalid transport security.
+    arrange: set up a charm with an invalid transport security.
+    act: none
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -77,7 +77,7 @@ def test_misconfigured_transport_security_charm_reaches_blocked_status():
 
 def test_charm_reaches_active_status():
     """
-    arrange: set up a charm.
+    arrange: set up a charm with minimal valid configuration.
     act: trigger a configuration change with the required configs.
     assert: the charm reaches ActiveStatus.
     """
@@ -93,11 +93,11 @@ def test_charm_reaches_active_status():
     assert harness.model.unit.status == ops.ActiveStatus()
 
 
-def test_legacy_relation_joined_when_leader():
+def test_legacy_relation_joined_populates_data():
     """
-    arrange: set up a configured charm and set leadership for the unit.
-    act: add a relation.
-    assert: the relation gets populated with the SMTP data.
+    arrange: set up a charm with valid configuration and leadership for the unit.
+    act: add an smtp-legacy relation.
+    assert: the smtp-legacy relation gets populated with the SMTP data.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
     harness.set_leader(True)
@@ -118,15 +118,39 @@ def test_legacy_relation_joined_when_leader():
     assert data["host"] == host
     assert data["port"] == str(port)
     assert data["password"] == password
+
+
+def test_legacy_relation_joined_doesnt_populate_password_id():
+    """
+    arrange: set up a charm with valid configuration and leadership for the unit.
+    act: add an smtp-legacy relation.
+    assert: the smtp-legacy relation does not get populated with the password_id.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    host = "smtp.example"
+    port = 25
+    password = "somepassword"  # nosec
+    harness.update_config(
+        {
+            "host": host,
+            "port": port,
+            "password": password,
+        }
+    )
+    harness.begin()
+    harness.charm.on.config_changed.emit()
+    harness.add_relation("smtp-legacy", "example")
+    data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
     assert "password_id" not in data
 
 
 @patch.object(ops.JujuVersion, "from_environ")
-def test_relation_joined_when_leader_and_secrets(mock_juju_env):
+def test_relation_joined_when_secrets_enabled_populates_data(mock_juju_env):
     """
-    arrange: set up a configured charm mimicking Juju 3 and set leadership for the unit.
-    act: add a relation.
-    assert: the relation gets populated with the SMTP data.
+    arrange: set up a charm with valid configuration mimicking Juju 3 and leadership for the unit.
+    act: add an smtp relation.
+    assert: the smtp relation gets populated with the SMTP data.
     """
     mock_juju_env.return_value = MagicMock(has_secrets=True)
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -147,16 +171,42 @@ def test_relation_joined_when_leader_and_secrets(mock_juju_env):
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data["host"] == host
     assert data["port"] == str(port)
-    assert "password" not in data
     assert data["password_id"] is not None
 
 
 @patch.object(ops.JujuVersion, "from_environ")
-def test_relation_joined_when_leader_and_no_secrets(mock_juju_env):
+def test_relation_joined_when_secrets_enabled_doesnt_populate_password(mock_juju_env):
     """
-    arrange: set up a configured charm mimicking Juju 2 and set leadership for the unit.
-    act: add a relation.
-    assert: the relation does not get populated with the SMTP data.
+    arrange: set up a charm with valid configuration mimicking Juju 3 and leadership for the unit.
+    act: add an smtp relation.
+    assert: the smtp relation does not populate with the password.
+    """
+    mock_juju_env.return_value = MagicMock(has_secrets=True)
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    host = "smtp.example"
+    port = 25
+    password = "somepassword"  # nosec
+    harness.update_config(
+        {
+            "host": host,
+            "port": port,
+            "password": password,
+        }
+    )
+    harness.begin()
+    harness.charm.on.config_changed.emit()
+    harness.add_relation("smtp", "example")
+    data = harness.model.get_relation("smtp").data[harness.model.app]
+    assert "password" not in data
+
+
+@patch.object(ops.JujuVersion, "from_environ")
+def test_relation_joined_when_no_secrets_enabled(mock_juju_env):
+    """
+    arrange: set up a charm with valid configuration mimicking Juju 2 and leadership for the unit.
+    act: add an smtp relation.
+    assert: the smtp relation does not get populated with the SMTP data.
     """
     mock_juju_env.return_value = MagicMock(has_secrets=False)
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -179,11 +229,11 @@ def test_relation_joined_when_leader_and_no_secrets(mock_juju_env):
 
 
 @patch.object(ops.JujuVersion, "from_environ")
-def test_relation_joined_when_leader_and_no_password(mock_juju_env):
+def test_relation_joined_when_no_password_configured(mock_juju_env):
     """
-    arrange: set up a configured charm mimicking Juju 3 and set leadership for the unit.
-    act: add a relation.
-    assert: the relation gets populated with the SMTP data.
+    arrange: set up a configured charm mimicking Juju 3 and leadership for the unit.
+    act: add an smtp relation.
+    assert: the relation gets populated with the SMTP data and the password_id is not present.
     """
     mock_juju_env.return_value = MagicMock(has_secrets=True)
     harness = Harness(SmtpIntegratorOperatorCharm)
@@ -209,8 +259,8 @@ def test_relation_joined_when_leader_and_no_password(mock_juju_env):
 def test_legacy_relation_joined_when_not_leader():
     """
     arrange: set up a charm mimicking Juju 3 and unset leadership for the unit.
-    act: add a relation.
-    assert: the relation does not get populated with the SMTP data.
+    act: add an smtp-legacy relation.
+    assert: the smtp-legacy relation does not get populated with the SMTP data.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
     harness.set_leader(False)
@@ -233,8 +283,8 @@ def test_legacy_relation_joined_when_not_leader():
 def test_relation_joined_when_not_leader(mock_juju_env):
     """
     arrange: set up a charm mimicking Juju 3 and unset leadership for the unit.
-    act: add a relation.
-    assert: the relation does not get populated with the SMTP data.
+    act: add an smtp relation.
+    assert: the smtp relation does not get populated with the SMTP data.
     """
     mock_juju_env.return_value = MagicMock(has_secrets=True)
     harness = Harness(SmtpIntegratorOperatorCharm)

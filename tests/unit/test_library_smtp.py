@@ -78,7 +78,7 @@ class SmtpProviderCharm(ops.CharmBase):
 
 def test_smtp_provider_charm_relations():
     """
-    arrange: instantiate a SmtpProviderCharm and add a relation.
+    arrange: instantiate a SmtpProviderCharm and add an smtp-legacy relation.
     act: obtain the relations.
     assert: the relations retrieved match the existing relations.
     """
@@ -92,7 +92,7 @@ def test_smtp_provider_charm_relations():
 
 def test_smtp_provider_update_relation_data():
     """
-    arrange: instantiate a SmtpProviderCharm object and add a relation.
+    arrange: instantiate a SmtpProviderCharm object and add an smtp-legacy relation.
     act: update the relation data.
     assert: the relation data is updated.
     """
@@ -148,7 +148,7 @@ def test_smtp_relation_data_to_relation_data():
 def test_legacy_requirer_charm_does_not_emit_event_id_when_no_data():
     """
     arrange: set up a charm with no relation data to be populated.
-    act: trigger a relation changed event.
+    act: add an smtp-legacy relation.
     assert: no events are emitted.
     """
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
@@ -163,8 +163,8 @@ def test_legacy_requirer_charm_does_not_emit_event_id_when_no_data():
 def test_requirer_charm_does_not_emit_event_id_when_no_data():
     """
     arrange: set up a charm with no relation data to be populated.
-    act: trigger a relation changed event.
-    assert: no events are emitted.
+    act: add an smtp relation.
+    assert: no SmtpDataAvailable events are emitted.
     """
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
@@ -179,8 +179,8 @@ def test_requirer_charm_does_not_emit_event_id_when_no_data():
 def test_legacy_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     """
     arrange: set up a charm.
-    act: trigger a relation changed event with valid data.
-    assert: a event containing the relation data is emitted.
+    act: add an smtp-legacy relation.
+    assert: an SmtpDataAvailable event containing the relation data is emitted.
     """
     relation_data = {
         "host": "example.smtp",
@@ -220,8 +220,8 @@ def test_legacy_requirer_charm_with_valid_relation_data_emits_event(is_leader):
 def test_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     """
     arrange: set up a charm.
-    act: trigger a relation changed event with valid data.
-    assert: a event containing the relation data is emitted.
+    act: add an smtp relation.
+    assert: an SmtpDataAvailable event containing the relation data is emitted.
     """
     relation_data = {
         "host": "example.smtp",
@@ -252,8 +252,8 @@ def test_requirer_charm_with_valid_relation_data_emits_event(is_leader):
 def test_requirer_charm_with_invalid_relation_data_doesnt_emit_event(is_leader):
     """
     arrange: set up a charm.
-    act: trigger a relation changed event with invalid data.
-    assert: an event containing the relation data is not emitted.
+    act: add an smtp-legacy relation changed event with invalid data.
+    assert: an SmtpDataAvailable event is not emitted.
     """
     relation_data = {
         "port": "25",
