@@ -2,7 +2,8 @@
 # See LICENSE file for licensing details.
 
 """Unit tests."""
-# pylint: disable=protected-access
+
+import secrets
 from unittest.mock import MagicMock, patch
 
 import ops
@@ -16,7 +17,7 @@ MINIMAL_CHARM_CONFIG = {
 }
 MINIMAL_CHARM_CONFIG_WITH_PASSWORD = {
     **MINIMAL_CHARM_CONFIG,
-    "password": "somepassword",  # nosec
+    "password": secrets.token_hex(),
 }
 
 
