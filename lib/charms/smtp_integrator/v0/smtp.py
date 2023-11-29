@@ -58,13 +58,13 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 5
+LIBPATCH = 6
 
 # pylint: disable=wrong-import-position
 import itertools
 import logging
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import ops
 from pydantic import BaseModel, Field, ValidationError
@@ -314,11 +314,7 @@ class SmtpRequires(ops.Object):
 
 
 class SmtpProvides(ops.Object):
-    """Provider side of the SMTP relation.
-
-    Attributes:
-        relations: list of charm relations.
-    """
+    """Provider side of the SMTP relation."""
 
     def __init__(self, charm: ops.CharmBase, relation_name: str = DEFAULT_RELATION_NAME) -> None:
         """Construct.
@@ -330,15 +326,6 @@ class SmtpProvides(ops.Object):
         super().__init__(charm, relation_name)
         self.charm = charm
         self.relation_name = relation_name
-
-    @property
-    def relations(self) -> List[ops.Relation]:
-        """The list of Relation instances associated with this relation_name.
-
-        Returns:
-            List of relations to this charm.
-        """
-        return list(self.model.relations[self.relation_name])
 
     def update_relation_data(self, relation: ops.Relation, smtp_data: SmtpRelationData) -> None:
         """Update the relation data.
