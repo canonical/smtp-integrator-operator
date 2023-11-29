@@ -6,20 +6,8 @@
 from unittest.mock import MagicMock
 
 import pytest
-import yaml
 
-from charm_state import KNOWN_CHARM_CONFIG, CharmConfigInvalidError, CharmState
-
-
-def test_known_charm_config():
-    """
-    arrange: none
-    act: none
-    assert: KNOWN_CHARM_CONFIG in the consts module matches the content of config.yaml file.
-    """
-    with open("config.yaml", encoding="utf-8") as config_file:
-        config = yaml.safe_load(config_file)
-    assert sorted(config["options"].keys()) == sorted(KNOWN_CHARM_CONFIG)
+from charm_state import CharmConfigInvalidError, CharmState
 
 
 def test_charm_state_from_charm():

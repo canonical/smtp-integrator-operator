@@ -5,9 +5,6 @@
 # <kbd>module</kbd> `charm_state.py`
 Module defining the CharmState class which represents the state of the SMTP Integrator charm. 
 
-**Global Variables**
----------------
-- **KNOWN_CHARM_CONFIG**
 
 
 ---
@@ -21,7 +18,7 @@ Exception raised when a charm configuration is found to be invalid.
  
  - <b>`msg`</b> (str):  Explanation of the error. 
 
-<a href="../src/charm_state.py#L56"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/charm_state.py#L46"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>function</kbd> `__init__`
 
@@ -59,7 +56,7 @@ Represents the state of the SMTP Integrator charm.
  - <b>`transport_security`</b>:  The security protocol to use for the outgoing SMTP relay. 
  - <b>`domain`</b>:  The domain used by the sent emails from SMTP relay. 
 
-<a href="../src/charm_state.py#L89"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/charm_state.py#L79"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>function</kbd> `__init__`
 
@@ -80,7 +77,7 @@ Initialize a new instance of the CharmState class.
 
 ---
 
-<a href="../src/charm_state.py#L104"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/charm_state.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>classmethod</kbd> `from_charm`
 
