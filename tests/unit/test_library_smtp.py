@@ -96,20 +96,6 @@ class SmtpProviderCharm(ops.CharmBase):
         self.events.append(event)
 
 
-def test_smtp_provider_charm_relations():
-    """
-    arrange: instantiate a SmtpProviderCharm and add an smtp-legacy relation.
-    act: obtain the relations.
-    assert: the relations retrieved match the existing relations.
-    """
-    harness = Harness(SmtpProviderCharm, meta=PROVIDER_METADATA)
-    harness.begin()
-    harness.set_leader(True)
-    harness.add_relation("smtp-legacy", "smtp-provider")
-    assert len(harness.charm.smtp_legacy.relations) == 1
-    assert len(harness.charm.smtp.relations) == 0
-
-
 def test_smtp_provider_update_relation_data():
     """
     arrange: instantiate a SmtpProviderCharm object and add an smtp-legacy relation.
