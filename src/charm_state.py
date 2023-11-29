@@ -13,16 +13,6 @@ import ops
 from charms.smtp_integrator.v0 import smtp
 from pydantic import BaseModel, Field, ValidationError
 
-KNOWN_CHARM_CONFIG = (
-    "host",
-    "port",
-    "user",
-    "password",
-    "auth_type",
-    "transport_security",
-    "domain",
-)
-
 
 class SmtpIntegratorConfig(BaseModel):
     """Represent charm builtin configuration values.
@@ -114,10 +104,9 @@ class CharmState:  # pylint: disable=too-many-instance-attributes
         Raises:
             CharmConfigInvalidError: if the charm configuration is invalid.
         """
-        config = {k: v for k, v in charm.config.items() if k in KNOWN_CHARM_CONFIG}
         try:
             # Incompatible with pydantic.AnyHttpUrl
-            valid_config = SmtpIntegratorConfig(**config)  # type: ignore
+            valid_config = SmtpIntegratorConfig(**dict(charm.config.items()))  # type: ignore
         except ValidationError as exc:
             error_fields = set(
                 itertools.chain.from_iterable(error["loc"] for error in exc.errors())
