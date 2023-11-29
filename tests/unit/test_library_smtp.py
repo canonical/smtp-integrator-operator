@@ -2,6 +2,8 @@
 # See LICENSE file for licensing details.
 
 """SMTP library unit tests"""
+import secrets
+
 import ops
 import pytest
 from charms.smtp_integrator.v0 import smtp
@@ -24,6 +26,24 @@ provides:
   smtp-legacy:
     interface: smtp
 """
+
+RELATION_DATA = {
+    "host": "example.smtp",
+    "port": "25",
+    "user": "example_user",
+    "auth_type": "plain",
+    "transport_security": "tls",
+    "domain": "domain",
+}
+
+SAMPLE_LEGACY_RELATION_DATA = {
+    **RELATION_DATA,
+    "password": secrets.token_hex(),
+}
+SAMPLE_RELATION_DATA = {
+    **RELATION_DATA,
+    "password_id": secrets.token_hex(),
+}
 
 
 class SmtpRequirerCharm(ops.CharmBase):
@@ -125,8 +145,8 @@ def test_smtp_relation_data_to_relation_data():
         host="example.smtp",
         port=25,
         user="example_user",
-        password="somepassword",  # nosec
-        password_id="someid",
+        password=secrets.token_hex(),
+        password_id=secrets.token_hex(),
         auth_type="plain",
         transport_security="tls",
         domain="domain",
@@ -136,8 +156,8 @@ def test_smtp_relation_data_to_relation_data():
         "host": "example.smtp",
         "port": "25",
         "user": "example_user",
-        "password": "somepassword",  # nosec
-        "password_id": "someid",
+        "password": smtp_data.password,
+        "password_id": smtp_data.password_id,
         "auth_type": "plain",
         "transport_security": "tls",
         "domain": "domain",
@@ -182,38 +202,34 @@ def test_legacy_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     act: add an smtp-legacy relation.
     assert: an SmtpDataAvailable event containing the relation data is emitted.
     """
-    relation_data = {
-        "host": "example.smtp",
-        "port": "25",
-        "user": "example_user",
-        "password": "somepassword",  # nosec
-        "auth_type": "plain",
-        "transport_security": "tls",
-        "domain": "domain",
-    }
-
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(is_leader)
-    harness.add_relation("smtp-legacy", "smtp-provider", app_data=relation_data)
+    harness.add_relation("smtp-legacy", "smtp-provider", app_data=SAMPLE_LEGACY_RELATION_DATA)
 
     assert len(harness.charm.events) == 1
-    assert harness.charm.events[0].host == relation_data["host"]
-    assert harness.charm.events[0].port == int(relation_data["port"])
-    assert harness.charm.events[0].user == relation_data["user"]
-    assert harness.charm.events[0].password == relation_data["password"]
-    assert harness.charm.events[0].auth_type == relation_data["auth_type"]
-    assert harness.charm.events[0].transport_security == relation_data["transport_security"]
-    assert harness.charm.events[0].domain == relation_data["domain"]
+    assert harness.charm.events[0].host == SAMPLE_LEGACY_RELATION_DATA["host"]
+    assert harness.charm.events[0].port == int(SAMPLE_LEGACY_RELATION_DATA["port"])
+    assert harness.charm.events[0].user == SAMPLE_LEGACY_RELATION_DATA["user"]
+    assert harness.charm.events[0].password == SAMPLE_LEGACY_RELATION_DATA["password"]
+    assert harness.charm.events[0].auth_type == SAMPLE_LEGACY_RELATION_DATA["auth_type"]
+    assert (
+        harness.charm.events[0].transport_security
+        == SAMPLE_LEGACY_RELATION_DATA["transport_security"]
+    )
+    assert harness.charm.events[0].domain == SAMPLE_LEGACY_RELATION_DATA["domain"]
 
     retrieved_relation_data = harness.charm.smtp_legacy.get_relation_data()
-    assert retrieved_relation_data.host == relation_data["host"]
-    assert retrieved_relation_data.port == int(relation_data["port"])
-    assert retrieved_relation_data.user == relation_data["user"]
-    assert retrieved_relation_data.password == relation_data["password"]
-    assert retrieved_relation_data.auth_type == relation_data["auth_type"]
-    assert retrieved_relation_data.transport_security == relation_data["transport_security"]
-    assert retrieved_relation_data.domain == relation_data["domain"]
+    assert retrieved_relation_data.host == SAMPLE_LEGACY_RELATION_DATA["host"]
+    assert retrieved_relation_data.port == int(SAMPLE_LEGACY_RELATION_DATA["port"])
+    assert retrieved_relation_data.user == SAMPLE_LEGACY_RELATION_DATA["user"]
+    assert retrieved_relation_data.password == SAMPLE_LEGACY_RELATION_DATA["password"]
+    assert retrieved_relation_data.auth_type == SAMPLE_LEGACY_RELATION_DATA["auth_type"]
+    assert (
+        retrieved_relation_data.transport_security
+        == SAMPLE_LEGACY_RELATION_DATA["transport_security"]
+    )
+    assert retrieved_relation_data.domain == SAMPLE_LEGACY_RELATION_DATA["domain"]
 
 
 @pytest.mark.parametrize("is_leader", [True, False])
@@ -223,29 +239,19 @@ def test_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     act: add an smtp relation.
     assert: an SmtpDataAvailable event containing the relation data is emitted.
     """
-    relation_data = {
-        "host": "example.smtp",
-        "port": "25",
-        "user": "example_user",
-        "password_id": "someid",
-        "auth_type": "plain",
-        "transport_security": "tls",
-        "domain": "domain",
-    }
-
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(is_leader)
-    harness.add_relation("smtp", "smtp-provider", app_data=relation_data)
+    harness.add_relation("smtp", "smtp-provider", app_data=SAMPLE_RELATION_DATA)
 
     assert len(harness.charm.events) == 1
-    assert harness.charm.events[0].host == relation_data["host"]
-    assert harness.charm.events[0].port == int(relation_data["port"])
-    assert harness.charm.events[0].user == relation_data["user"]
-    assert harness.charm.events[0].password_id == relation_data["password_id"]
-    assert harness.charm.events[0].auth_type == relation_data["auth_type"]
-    assert harness.charm.events[0].transport_security == relation_data["transport_security"]
-    assert harness.charm.events[0].domain == relation_data["domain"]
+    assert harness.charm.events[0].host == SAMPLE_RELATION_DATA["host"]
+    assert harness.charm.events[0].port == int(SAMPLE_RELATION_DATA["port"])
+    assert harness.charm.events[0].user == SAMPLE_RELATION_DATA["user"]
+    assert harness.charm.events[0].password_id == SAMPLE_RELATION_DATA["password_id"]
+    assert harness.charm.events[0].auth_type == SAMPLE_RELATION_DATA["auth_type"]
+    assert harness.charm.events[0].transport_security == SAMPLE_RELATION_DATA["transport_security"]
+    assert harness.charm.events[0].domain == SAMPLE_RELATION_DATA["domain"]
 
 
 @pytest.mark.parametrize("is_leader", [True, False])
