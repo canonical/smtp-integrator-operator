@@ -48,6 +48,16 @@ class SmtpProviderCharm(ops.CharmBase):
 The SmtpProvides object wraps the list of relations into a `relations` property
 and provides an `update_relation_data` method to update the relation data by passing
 a `SmtpRelationData` data object.
+
+```python
+class SmtpProviderCharm(ops.CharmBase):
+    ...
+
+    def _on_config_changed(self, _) -> None:
+        for relation in self.model.relations[self.smtp.relation_name]:
+            self.smtp.update_relation_data(relation, self._get_smtp_data())
+
+```
 """
 
 # The unique Charmhub library identifier, never change it
