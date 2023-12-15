@@ -80,7 +80,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             the secret id.
         """
         peer_relation = self.model.get_relation("smtp-peers")
-        assert peer_relation
+        assert peer_relation  # nosec
         if not peer_relation.data[self.app].get("secret-id"):
             secret = self.app.add_secret({"password": self._charm_state.password})
             peer_relation.data[self.app].update({"secret-key": secret.id})
@@ -150,7 +150,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             SmtpRelationData containing the SMTP details.
         """
         peer_relation = self.model.get_relation("smtp-peers")
-        assert peer_relation
+        assert peer_relation  # nosec
         password_id = peer_relation.data[self.app].get("secret-id")
         return smtp.SmtpRelationData(
             host=self._charm_state.host,
