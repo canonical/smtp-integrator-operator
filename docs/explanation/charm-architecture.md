@@ -10,8 +10,8 @@ For this charm, the following events are observed:
 
 1. [config-changed](https://juju.is/docs/sdk/config-changed-event): usually fired in response to a configuration change using the GUI or CLI. Action: validate the configuration and propagate the SMTP configuration through the relation.
 2. [update-status](https://juju.is/docs/sdk/update-status-event): fired periodically. Action: propagate the SMTP configuration through the relation.
-3. [smtp-relation-joined](https://juju.is/docs/sdk/relation-name-relation-joined-event): Custom event for when a new SMTP relations joins. Action: write the SMTP details in the relation databag. The `smtp` integration will share a secret id across the relation the requirer will be able to access to retrieve the password.
-4. [smtp-legacy-relation-joined](https://juju.is/docs/sdk/relation-name-relation-joined-event): Custom event for when a new legacy SMTP relations joins. Action: write the SMTP details in the relation databag. The `smtp-legacy` integration will share the password across the relation.
+3. [smtp-relation-joined](https://juju.is/docs/sdk/relation-name-relation-joined-event): Custom event for when a new SMTP relations joins. Action: write the SMTP details in the relation databag. The `saml` integration will share a secret id across the relation the requirer will be able to access to retrieve the password.
+4. [smtp-legacy-relation-joined](https://juju.is/docs/sdk/relation-name-relation-joined-event): Custom event for when a new legacy SMTP relations joins. Action: write the SMTP details in the relation databag. The `saml-legacy` integration will share the password across the relation.
 
 ## Charm code overview
 
