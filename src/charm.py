@@ -95,6 +95,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         if peer_relation.data[self.app].get("secret-id"):
             secret_id = peer_relation.data[self.app].get("secret-id")
             secret = self.model.get_secret(id=secret_id)
+            secret.remove_all_revisions()
             peer_relation.data[self.app].pop("secret-id")
         return None
 
