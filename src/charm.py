@@ -83,20 +83,23 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         """
         peer_relation = self.model.get_relation("smtp-peers")
         assert peer_relation  # nosec
-        if self._charm_state.password and not peer_relation.data[self.app].get("secret-id"):
+        secret = None
+        if secret_id := peer_relation.data[self.app].get("secret-id"):
+            try:
+                secret = self.model.get_secret(id=secret_id)
+            except ops.SecretNotFoundError as exc:
+                logger.exception("Failed to get secret id %s: %s", secret_id, str(exc))
+                del peer_relation.data[self.app][secret_id]
+        if self._charm_state.password and not secret:
             secret = self.app.add_secret({"password": self._charm_state.password})
             peer_relation.data[self.app].update({"secret-id": secret.id})
             return secret
-        if self._charm_state.password:
-            secret_id = peer_relation.data[self.app].get("secret-id")
-            secret = self.model.get_secret(id=secret_id)
+        if self._charm_state.password and secret:
             secret.set_content({"password": self._charm_state.password})
             return secret
-        if peer_relation.data[self.app].get("secret-id"):
-            secret_id = peer_relation.data[self.app].get("secret-id")
-            secret = self.model.get_secret(id=secret_id)
+        if secret:
             secret.remove_all_revisions()
-            peer_relation.data[self.app].pop("secret-id")
+            del peer_relation.data[self.app][secret_id]
         return None
 
     def _update_relations(self) -> None:
