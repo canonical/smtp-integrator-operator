@@ -61,7 +61,6 @@ class CharmState:  # pylint: disable=too-many-instance-attributes
         port: The port of the outgoing SMTP relay.
         user: The SMTP AUTH user to use for the outgoing SMTP relay.
         password: The SMTP AUTH password to use for the outgoing SMTP relay.
-        password_id: The secret ID where the SMTP AUTH password for the SMTP relay is stored.
         auth_type: The type used to authenticate with the SMTP relay.
         transport_security: The security protocol to use for the outgoing SMTP relay.
         domain: The domain used by the sent emails from SMTP relay.
@@ -71,7 +70,6 @@ class CharmState:  # pylint: disable=too-many-instance-attributes
     port: int
     user: Optional[str]
     password: Optional[str]
-    password_id: Optional[str]
     auth_type: Optional[smtp.AuthType]
     transport_security: Optional[smtp.TransportSecurity]
     domain: Optional[str]
@@ -86,7 +84,6 @@ class CharmState:  # pylint: disable=too-many-instance-attributes
         self.port = smtp_integrator_config.port
         self.user = smtp_integrator_config.user
         self.password = smtp_integrator_config.password
-        self.password_id = None
         self.auth_type = smtp_integrator_config.auth_type
         self.transport_security = smtp_integrator_config.transport_security
         self.domain = smtp_integrator_config.domain
