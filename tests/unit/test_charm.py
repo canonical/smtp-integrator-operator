@@ -140,9 +140,9 @@ def test_relation_joined_when_secrets_enabled_populates_data(mock_juju_env):
     mock_juju_env.return_value = MagicMock(has_secrets=True)
     harness = Harness(SmtpIntegratorOperatorCharm)
     harness.set_leader(True)
-    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
     harness.begin()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.charm.on.config_changed.emit()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
@@ -161,9 +161,9 @@ def test_relation_joined_when_secrets_enabled_doesnt_populate_password(mock_juju
     mock_juju_env.return_value = MagicMock(has_secrets=True)
     harness = Harness(SmtpIntegratorOperatorCharm)
     harness.set_leader(True)
-    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
     harness.begin()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.charm.on.config_changed.emit()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
@@ -198,9 +198,9 @@ def test_relation_joined_when_no_password_configured(mock_juju_env):
     mock_juju_env.return_value = MagicMock(has_secrets=True)
     harness = Harness(SmtpIntegratorOperatorCharm)
     harness.set_leader(True)
-    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.update_config(MINIMAL_CHARM_CONFIG)
     harness.begin()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.charm.on.config_changed.emit()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
@@ -218,9 +218,9 @@ def test_legacy_relation_joined_when_not_leader():
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
     harness.set_leader(False)
-    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.update_config(MINIMAL_CHARM_CONFIG)
     harness.begin()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.charm.on.config_changed.emit()
     harness.add_relation("smtp-legacy", "example")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
