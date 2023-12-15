@@ -55,7 +55,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             secret = self._store_password_as_secret()
             if secret:
                 secret.grant(event.relation)
-        self._update_relation(event.relation)
+        self._update_smtp_relation(event.relation)
 
     def _on_legacy_relation_created(self, event: ops.RelationCreatedEvent) -> None:
         """Handle a change to the smtp-legacy relation.
@@ -65,7 +65,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         """
         if not self.model.unit.is_leader():
             return
-        self._update_relation(event.relation)
+        self._update_smtp_legacy_relation(event.relation)
 
     def _on_config_changed(self, _) -> None:
         """Handle changes in configuration."""
@@ -104,19 +104,8 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         if not self.model.unit.is_leader():
             return
         for relation in self.model.relations[self.smtp.relation_name]:
-            self._update_relation(relation)
-        for relation in self.model.relations[self.smtp_legacy.relation_name]:
-            self._update_relation(relation)
-
-    def _update_relation(self, relation: ops.Relation) -> None:
-        """Update the SMTP data for a relation.
-
-        Args:
-            relation: the relation to update the SMTP for.
-        """
-        if relation.name == self.smtp.relation_name:
             self._update_smtp_relation(relation)
-        if relation.name == self.smtp_legacy.relation_name:
+        for relation in self.model.relations[self.smtp_legacy.relation_name]:
             self._update_smtp_legacy_relation(relation)
 
     def _update_smtp_relation(self, relation: ops.Relation) -> None:
