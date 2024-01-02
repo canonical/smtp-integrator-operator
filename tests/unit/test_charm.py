@@ -106,8 +106,25 @@ def test_legacy_relation_joined_populates_data():
     harness.set_leader(True)
     harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
     harness.begin()
-    harness.charm.on.config_changed.emit()
     harness.add_relation("smtp-legacy", "example")
+    data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
+    assert data["host"] == MINIMAL_CHARM_CONFIG_WITH_PASSWORD["host"]
+    assert data["port"] == str(MINIMAL_CHARM_CONFIG_WITH_PASSWORD["port"])
+    assert data["password"] == MINIMAL_CHARM_CONFIG_WITH_PASSWORD["password"]
+
+
+def test_config_changed_joined_populates_data():
+    """
+    arrange: set up a charm with valid configuration and leadership for the unit.
+    act: add an smtp-legacy relation and trigger a configuration change.
+    assert: the smtp-legacy relation gets populated with the SMTP data.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
+    harness.begin()
+    harness.add_relation("smtp-legacy", "example")
+    harness.charm.on.config_changed.emit()
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
     assert data["host"] == MINIMAL_CHARM_CONFIG_WITH_PASSWORD["host"]
     assert data["port"] == str(MINIMAL_CHARM_CONFIG_WITH_PASSWORD["port"])
@@ -124,7 +141,6 @@ def test_legacy_relation_joined_doesnt_populate_password_id():
     harness.set_leader(True)
     harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
     harness.begin()
-    harness.charm.on.config_changed.emit()
     harness.add_relation("smtp-legacy", "example")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
     assert "password_id" not in data
@@ -142,8 +158,29 @@ def test_relation_joined_when_secrets_enabled_populates_data(mock_juju_env):
     harness.set_leader(True)
     harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
     harness.begin()
-    harness.charm.on.config_changed.emit()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.add_relation("smtp", "example")
+    data = harness.model.get_relation("smtp").data[harness.model.app]
+    assert data["host"] == MINIMAL_CHARM_CONFIG_WITH_PASSWORD["host"]
+    assert data["port"] == str(MINIMAL_CHARM_CONFIG_WITH_PASSWORD["port"])
+    assert data["password_id"] is not None
+
+
+@patch.object(ops.JujuVersion, "from_environ")
+def test_config_changed_when_secrets_enabled_populates_data(mock_juju_env):
+    """
+    arrange: set up a charm with valid configuration mimicking Juju 3 and leadership for the unit.
+    act: add an smtp relation and trigger a configuration change.
+    assert: the smtp relation gets populated with the SMTP data.
+    """
+    mock_juju_env.return_value = MagicMock(has_secrets=True)
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
+    harness.begin()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
+    harness.add_relation("smtp", "example")
+    harness.charm.on.config_changed.emit()
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data["host"] == MINIMAL_CHARM_CONFIG_WITH_PASSWORD["host"]
     assert data["port"] == str(MINIMAL_CHARM_CONFIG_WITH_PASSWORD["port"])
@@ -162,7 +199,7 @@ def test_relation_joined_when_secrets_enabled_doesnt_populate_password(mock_juju
     harness.set_leader(True)
     harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
     harness.begin()
-    harness.charm.on.config_changed.emit()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert "password" not in data
@@ -180,7 +217,6 @@ def test_relation_joined_when_no_secrets_enabled(mock_juju_env):
     harness.set_leader(True)
     harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
     harness.begin()
-    harness.charm.on.config_changed.emit()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data == {}
@@ -198,7 +234,7 @@ def test_relation_joined_when_no_password_configured(mock_juju_env):
     harness.set_leader(True)
     harness.update_config(MINIMAL_CHARM_CONFIG)
     harness.begin()
-    harness.charm.on.config_changed.emit()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data["host"] == MINIMAL_CHARM_CONFIG["host"]
@@ -217,6 +253,7 @@ def test_legacy_relation_joined_when_not_leader():
     harness.set_leader(False)
     harness.update_config(MINIMAL_CHARM_CONFIG)
     harness.begin()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.charm.on.config_changed.emit()
     harness.add_relation("smtp-legacy", "example")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
@@ -235,6 +272,7 @@ def test_relation_joined_when_not_leader(mock_juju_env):
     harness.set_leader(False)
     harness.update_config(MINIMAL_CHARM_CONFIG)
     harness.begin()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
     harness.charm.on.config_changed.emit()
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]

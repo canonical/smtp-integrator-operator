@@ -51,12 +51,11 @@ Represents the state of the SMTP Integrator charm.
  - <b>`port`</b>:  The port of the outgoing SMTP relay. 
  - <b>`user`</b>:  The SMTP AUTH user to use for the outgoing SMTP relay. 
  - <b>`password`</b>:  The SMTP AUTH password to use for the outgoing SMTP relay. 
- - <b>`password_id`</b>:  The secret ID where the SMTP AUTH password for the SMTP relay is stored. 
  - <b>`auth_type`</b>:  The type used to authenticate with the SMTP relay. 
  - <b>`transport_security`</b>:  The security protocol to use for the outgoing SMTP relay. 
  - <b>`domain`</b>:  The domain used by the sent emails from SMTP relay. 
 
-<a href="../src/charm_state.py#L79"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/charm_state.py#L77"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>function</kbd> `__init__`
 
@@ -77,7 +76,7 @@ Initialize a new instance of the CharmState class.
 
 ---
 
-<a href="../src/charm_state.py#L94"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/charm_state.py#L91"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>classmethod</kbd> `from_charm`
 

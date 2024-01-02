@@ -31,3 +31,7 @@ provides:
   smtp-legacy:
     interface: smtp
 
+peers:
+  smtp-peers:
+    interface: smtp-instance
+

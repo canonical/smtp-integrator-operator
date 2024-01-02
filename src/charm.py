@@ -6,6 +6,7 @@
 """SMTP Integrator Charm service."""
 
 import logging
+from typing import Optional
 
 import ops
 from charms.smtp_integrator.v0 import smtp
@@ -50,9 +51,10 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         """
         if not self.model.unit.is_leader():
             return
-        if secret_id := self._charm_state.password_id:
-            secret = self.model.get_secret(id=secret_id)
-            secret.grant(event.relation)
+        if self._has_secrets():
+            secret = self._store_password_as_secret()
+            if secret:
+                secret.grant(event.relation)
         self._update_smtp_relation(event.relation)
 
     def _on_legacy_relation_created(self, event: ops.RelationCreatedEvent) -> None:
@@ -68,16 +70,37 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
     def _on_config_changed(self, _) -> None:
         """Handle changes in configuration."""
         self.unit.status = ops.MaintenanceStatus("Configuring charm")
-        self._store_password_as_secret()
+        if self._has_secrets():
+            self._store_password_as_secret()
         self._update_relations()
         self.unit.status = ops.ActiveStatus()
 
-    def _store_password_as_secret(self) -> None:
-        """Store the SMTP password as a secret."""
-        if self._charm_state.password and self._has_secrets():
-            # Note https://github.com/juju/python-libjuju/issues/970
+    def _store_password_as_secret(self) -> Optional[ops.Secret]:
+        """Store the SMTP password as a secret.
+
+        Returns:
+            the secret id.
+        """
+        peer_relation = self.model.get_relation("smtp-peers")
+        assert peer_relation  # nosec
+        secret = None
+        if secret_id := peer_relation.data[self.app].get("secret-id"):
+            try:
+                secret = self.model.get_secret(id=secret_id)
+            except ops.SecretNotFoundError as exc:
+                logger.exception("Failed to get secret id %s: %s", secret_id, str(exc))
+                del peer_relation.data[self.app][secret_id]
+        if self._charm_state.password and not secret:
             secret = self.app.add_secret({"password": self._charm_state.password})
-            self._charm_state.password_id = secret.id
+            peer_relation.data[self.app].update({"secret-id": secret.id})
+            return secret
+        if self._charm_state.password and secret:
+            secret.set_content({"password": self._charm_state.password})
+            return secret
+        if secret:
+            secret.remove_all_revisions()
+            del peer_relation.data[self.app][secret_id]
+        return None
 
     def _update_relations(self) -> None:
         """Update all SMTP data for the existing relations."""
@@ -127,11 +150,14 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         Returns:
             SmtpRelationData containing the SMTP details.
         """
+        peer_relation = self.model.get_relation("smtp-peers")
+        assert peer_relation  # nosec
+        password_id = peer_relation.data[self.app].get("secret-id")
         return smtp.SmtpRelationData(
             host=self._charm_state.host,
             port=self._charm_state.port,
             user=self._charm_state.user,
-            password_id=self._charm_state.password_id,
+            password_id=password_id,
             auth_type=self._charm_state.auth_type,
             transport_security=self._charm_state.transport_security,
             domain=self._charm_state.domain,
