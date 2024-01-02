@@ -53,14 +53,9 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             return
         if self._has_secrets():
             secret = self._store_password_as_secret()
-<<<<<<< HEAD
-            secret.grant(event.relation)
-        self._update_relation(event.relation)
-=======
             if secret:
                 secret.grant(event.relation)
         self._update_smtp_relation(event.relation)
->>>>>>> origin/main
 
     def _on_legacy_relation_created(self, event: ops.RelationCreatedEvent) -> None:
         """Handle a change to the smtp-legacy relation.
@@ -167,11 +162,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             SmtpRelationData containing the SMTP details.
         """
         peer_relation = self.model.get_relation("smtp-peers")
-<<<<<<< HEAD
-        assert peer_relation
-=======
         assert peer_relation  # nosec
->>>>>>> origin/main
         password_id = peer_relation.data[self.app].get("secret-id")
         return smtp.SmtpRelationData(
             host=self._charm_state.host,
