@@ -107,19 +107,8 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         if not self.model.unit.is_leader():
             return
         for relation in self.model.relations[self.smtp.relation_name]:
-            self._update_relation(relation)
-        for relation in self.model.relations[self.smtp_legacy.relation_name]:
-            self._update_relation(relation)
-
-    def _update_relation(self, relation: ops.Relation) -> None:
-        """Update the SMTP data for a relation.
-
-        Args:
-            relation: the relation to update the SMTP for.
-        """
-        if relation.name == self.smtp.relation_name:
             self._update_smtp_relation(relation)
-        if relation.name == self.smtp_legacy.relation_name:
+        for relation in self.model.relations[self.smtp_legacy.relation_name]:
             self._update_smtp_legacy_relation(relation)
 
     def _update_smtp_relation(self, relation: ops.Relation) -> None:
