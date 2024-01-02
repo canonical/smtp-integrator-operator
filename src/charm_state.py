@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2023 Canonical Ltd.
+# Copyright 2024 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 """Module defining the CharmState class which represents the state of the SMTP Integrator charm."""
