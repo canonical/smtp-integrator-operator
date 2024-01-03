@@ -5,7 +5,7 @@
 # pylint: disable=redefined-outer-name
 import pytest
 from interface_tester.plugin import InterfaceTester
-from scenario import State
+from scenario import PeerRelation, State
 
 from charm import SmtpIntegratorOperatorCharm
 
@@ -24,6 +24,7 @@ def interface_tester(interface_tester: InterfaceTester):
         state_template=State(
             leader=True,
             config={"host": "smtp.example"},
+            relations=[PeerRelation(endpoint="smtp-peers")],
         ),
     )
     yield interface_tester
