@@ -29,11 +29,11 @@ class SmtpIntegratorConfig(BaseModel):
 
     host: str = Field(..., min_length=1)
     port: int = Field(None, ge=1, le=65536)
-    user: Optional[str]
-    password: Optional[str]
-    auth_type: Optional[smtp.AuthType]
-    transport_security: Optional[smtp.TransportSecurity]
-    domain: Optional[str]
+    user: Optional[str] = None
+    password: Optional[str] = None
+    auth_type: smtp.AuthType | None = None
+    transport_security: smtp.TransportSecurity | None = None
+    domain: Optional[str] = None
 
 
 class CharmConfigInvalidError(Exception):
