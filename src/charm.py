@@ -6,6 +6,7 @@
 """SMTP Integrator Charm service."""
 
 import logging
+import typing
 from typing import Optional
 
 import ops
@@ -92,12 +93,12 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
                 del peer_relation.data[self.app][secret_id]
         if self._charm_state.password and not secret:
             secret = self.app.add_secret({"password": self._charm_state.password})
-            peer_relation.data[self.app].update({"secret-id": secret.id})
+            peer_relation.data[self.app].update({"secret-id": typing.cast(str, secret.id)})
             return secret
         if self._charm_state.password and secret:
             secret.set_content({"password": self._charm_state.password})
             return secret
-        if secret:
+        if secret and secret_id:
             secret.remove_all_revisions()
             del peer_relation.data[self.app][secret_id]
         return None
