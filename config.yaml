@@ -26,3 +26,7 @@ options:
   domain:
     description: The domain used by the sent emails from SMTP relay
     type: string
+  skip_ssl_verify:
+    description: Specifies if certificate trust verification is skipped in the SMTP relay
+    type: boolean
+    default: false

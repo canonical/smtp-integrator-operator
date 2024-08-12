@@ -3,6 +3,7 @@
 
 """SMTP library unit tests"""
 import secrets
+from ast import literal_eval
 
 import ops
 import pytest
@@ -34,6 +35,7 @@ RELATION_DATA = {
     "auth_type": "plain",
     "transport_security": "tls",
     "domain": "domain",
+    "skip_ssl_verify": "False",
 }
 
 SAMPLE_LEGACY_RELATION_DATA = {
@@ -112,6 +114,7 @@ def test_smtp_provider_update_relation_data():
         port=25,
         auth_type="plain",
         transport_security="tls",
+        skip_ssl_verify=False,
     )
     harness.charm.smtp_legacy.update_relation_data(relation, smtp_data)
     data = relation.data[harness.model.app]
@@ -119,6 +122,7 @@ def test_smtp_provider_update_relation_data():
     assert data["port"] == str(smtp_data.port)
     assert data["auth_type"] == smtp_data.auth_type
     assert data["transport_security"] == smtp_data.transport_security
+    assert data["skip_ssl_verify"] == str(smtp_data.skip_ssl_verify)
 
 
 def test_smtp_relation_data_to_relation_data():
@@ -136,6 +140,7 @@ def test_smtp_relation_data_to_relation_data():
         auth_type="plain",
         transport_security="tls",
         domain="domain",
+        skip_ssl_verify=False,
     )
     relation_data = smtp_data.to_relation_data()
     expected_relation_data = {
@@ -147,6 +152,7 @@ def test_smtp_relation_data_to_relation_data():
         "auth_type": "plain",
         "transport_security": "tls",
         "domain": "domain",
+        "skip_ssl_verify": "False",
     }
     assert relation_data == expected_relation_data
 
@@ -204,6 +210,9 @@ def test_legacy_requirer_charm_with_valid_relation_data_emits_event(is_leader):
         == SAMPLE_LEGACY_RELATION_DATA["transport_security"]
     )
     assert harness.charm.events[0].domain == SAMPLE_LEGACY_RELATION_DATA["domain"]
+    assert harness.charm.events[0].skip_ssl_verify == literal_eval(
+        SAMPLE_LEGACY_RELATION_DATA["skip_ssl_verify"]
+    )
 
     retrieved_relation_data = harness.charm.smtp_legacy.get_relation_data()
     assert retrieved_relation_data.host == SAMPLE_LEGACY_RELATION_DATA["host"]
@@ -216,6 +225,9 @@ def test_legacy_requirer_charm_with_valid_relation_data_emits_event(is_leader):
         == SAMPLE_LEGACY_RELATION_DATA["transport_security"]
     )
     assert retrieved_relation_data.domain == SAMPLE_LEGACY_RELATION_DATA["domain"]
+    assert retrieved_relation_data.skip_ssl_verify == literal_eval(
+        SAMPLE_LEGACY_RELATION_DATA["skip_ssl_verify"]
+    )
 
 
 @pytest.mark.parametrize("is_leader", [True, False])
@@ -238,6 +250,9 @@ def test_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     assert harness.charm.events[0].auth_type == SAMPLE_RELATION_DATA["auth_type"]
     assert harness.charm.events[0].transport_security == SAMPLE_RELATION_DATA["transport_security"]
     assert harness.charm.events[0].domain == SAMPLE_RELATION_DATA["domain"]
+    assert harness.charm.events[0].skip_ssl_verify == literal_eval(
+        SAMPLE_RELATION_DATA["skip_ssl_verify"]
+    )
 
 
 @pytest.mark.parametrize("is_leader", [True, False])
@@ -254,6 +269,7 @@ def test_requirer_charm_with_invalid_relation_data_doesnt_emit_event(is_leader):
         "auth_type": "plain",
         "transport_security": "tls",
         "domain": "domain",
+        "skip_ssl_verify": "False",
     }
 
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
