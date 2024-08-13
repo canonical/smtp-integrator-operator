@@ -24,7 +24,8 @@ class SmtpIntegratorConfig(BaseModel):
         password: The SMTP AUTH password to use for the outgoing SMTP relay.
         auth_type: The type used to authenticate with the SMTP relay.
         transport_security: The security protocol to use for the outgoing SMTP relay.
-        domain: The domain used by the sent emails from SMTP relay.
+        domain: The domain used by the emails sent from SMTP relay.
+        skip_ssl_verify: Specifies if certificate trust verification is skipped in the SMTP relay.
     """
 
     host: str = Field(..., min_length=1)
@@ -34,6 +35,7 @@ class SmtpIntegratorConfig(BaseModel):
     auth_type: smtp.AuthType | None = None
     transport_security: smtp.TransportSecurity | None = None
     domain: Optional[str] = None
+    skip_ssl_verify: bool = False
 
 
 class CharmConfigInvalidError(Exception):
@@ -63,7 +65,8 @@ class CharmState:  # pylint: disable=too-many-instance-attributes
         password: The SMTP AUTH password to use for the outgoing SMTP relay.
         auth_type: The type used to authenticate with the SMTP relay.
         transport_security: The security protocol to use for the outgoing SMTP relay.
-        domain: The domain used by the sent emails from SMTP relay.
+        domain: The domain used by the emails sent from SMTP relay.
+        skip_ssl_verify: Specifies if certificate trust verification is skipped in the SMTP relay.
     """
 
     host: str
@@ -73,6 +76,7 @@ class CharmState:  # pylint: disable=too-many-instance-attributes
     auth_type: Optional[smtp.AuthType]
     transport_security: Optional[smtp.TransportSecurity]
     domain: Optional[str]
+    skip_ssl_verify: bool
 
     def __init__(self, *, smtp_integrator_config: SmtpIntegratorConfig):
         """Initialize a new instance of the CharmState class.
@@ -87,6 +91,7 @@ class CharmState:  # pylint: disable=too-many-instance-attributes
         self.auth_type = smtp_integrator_config.auth_type
         self.transport_security = smtp_integrator_config.transport_security
         self.domain = smtp_integrator_config.domain
+        self.skip_ssl_verify = smtp_integrator_config.skip_ssl_verify
 
     @classmethod
     def from_charm(cls, charm: "ops.CharmBase") -> "CharmState":

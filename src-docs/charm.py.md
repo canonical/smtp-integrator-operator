@@ -15,7 +15,7 @@ SMTP Integrator Charm service.
 ## <kbd>class</kbd> `SmtpIntegratorOperatorCharm`
 Charm the service. 
 
-<a href="../src/charm.py#L24"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
+<a href="../src/charm.py#L25"><img align="right" style="float:right;" src="https://img.shields.io/badge/-source-cccccc?style=flat-square"></a>
 
 ### <kbd>function</kbd> `__init__`
 
