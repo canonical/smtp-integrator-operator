@@ -140,7 +140,7 @@ class SmtpRelationData(BaseModel):
     auth_type: AuthType
     transport_security: TransportSecurity
     domain: Optional[str] = None
-    skip_ssl_verify: bool = False
+    skip_ssl_verify: Optional[bool] = False
 
     def to_relation_data(self) -> Dict[str, str]:
         """Convert an instance of SmtpRelationData to the relation representation.
