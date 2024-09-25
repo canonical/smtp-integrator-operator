@@ -278,3 +278,16 @@ def test_requirer_charm_with_invalid_relation_data_doesnt_emit_event(is_leader):
     harness.add_relation("smtp-legacy", "smtp-provider", app_data=relation_data)
 
     assert len(harness.charm.events) == 0
+
+
+def test_requirer_charm_get_relation_data_without_relation_data():
+    """
+    arrange: set up a charm with smtp relation without any relation data.
+    act: call get_relation_data function.
+    assert: get_relation_data should return None.
+    """
+    harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
+    harness.begin()
+    harness.set_leader(True)
+    harness.add_relation("smtp", "smtp-provider", app_data={})
+    assert harness.charm.smtp.get_relation_data() is None
