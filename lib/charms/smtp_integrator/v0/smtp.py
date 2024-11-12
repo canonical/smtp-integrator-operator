@@ -280,7 +280,7 @@ class SmtpRequires(ops.Object):
         relation = self.model.get_relation(self.relation_name)
         return self._get_relation_data_from_relation(relation) if relation else None
 
-    def _get_relation_data_from_relation(self, relation: ops.Relation) -> SmtpRelationData | None:
+    def _get_relation_data_from_relation(self, relation: ops.Relation) -> Optional[SmtpRelationData]:
         """Retrieve the relation data.
 
         Args:
