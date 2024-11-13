@@ -68,7 +68,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 12
+LIBPATCH = 13
 
 PYDEPS = ["pydantic>=2"]
 
@@ -280,7 +280,9 @@ class SmtpRequires(ops.Object):
         relation = self.model.get_relation(self.relation_name)
         return self._get_relation_data_from_relation(relation) if relation else None
 
-    def _get_relation_data_from_relation(self, relation: ops.Relation) -> SmtpRelationData | None:
+    def _get_relation_data_from_relation(
+        self, relation: ops.Relation
+    ) -> Optional[SmtpRelationData]:
         """Retrieve the relation data.
 
         Args:
