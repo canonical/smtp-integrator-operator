@@ -29,7 +29,7 @@ class SmtpIntegratorConfig(BaseModel):
     """
 
     host: str = Field(..., min_length=1)
-    port: int = Field(None, ge=1, le=65536)
+    port: int = Field(..., ge=1, le=65536)
     user: Optional[str] = None
     password: Optional[str] = None
     auth_type: smtp.AuthType | None = None
