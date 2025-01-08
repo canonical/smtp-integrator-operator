@@ -14,6 +14,9 @@ of those charms.
 For DevOps or SRE teams this charm will make operating any charm requiring SMTP
 authentication simple and straightforward through Juju's clean interface.
 
+For information about how to deploy, integrate, and manage this charm,
+see the Official [SMTP Integrator Operator Documentation](https://charmhub.io/smtp-integrator).
+
 ## Get started
 
 You can follow the tutorial [here](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started).
