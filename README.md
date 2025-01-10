@@ -24,11 +24,11 @@ You can follow the tutorial [here](https://charmhub.io/smtp-integrator/docs/tuto
 ### Basic operations
 
 The smtp-integrator charm is a charm intended to be used to provide SMTP 
-connection information via the `smtp` juju integration to other charms. 
+connection information via the `smtp` Juju integration to other charms. 
 The smtp-integrator charm is first configured with the desired SMTP connection
 information, and any charm that integrates with the smtp-integrator 
 charm can obtain the configured SMTP connection information via the 
-`smtp` juju integration from the smtp-integrator charm.
+`smtp` Juju integration.
 
 ## Learn more
 * [Read more](https://charmhub.io/smtp-integrator)
