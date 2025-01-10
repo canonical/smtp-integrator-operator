@@ -21,6 +21,15 @@ see the Official [SMTP Integrator Operator Documentation](https://charmhub.io/sm
 
 You can follow the tutorial [here](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started).
 
+### Basic operations
+
+The smtp-integrator charm is a charm intended to be used to provide SMTP 
+connection information via the `smtp` juju integration to other charms. 
+The smtp-integrator charm is first configured with the desired SMTP connection
+information, and any charm that integrates with the smtp-integrator 
+charm can obtain the configured SMTP connection information via the 
+`smtp` juju integration from the smtp-integrator charm.
+
 ## Learn more
 * [Read more](https://charmhub.io/smtp-integrator)
 * [SAML specification](https://www.oasis-open.org/standard/smtp/)
