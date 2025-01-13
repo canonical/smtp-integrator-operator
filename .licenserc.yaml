@@ -15,6 +15,7 @@ header:
     - '.jujuignore'
     - '.gitignore'
     - '.licenserc.yaml'
+    - '.woke.yaml'
     - 'CODEOWNERS'
     - 'LICENSE'
     - 'trivy.yaml'
