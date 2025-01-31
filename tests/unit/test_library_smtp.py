@@ -52,6 +52,7 @@ SAMPLE_RELATION_DATA = {
     "skip_ssl_verify": "False",
 }
 
+
 class SmtpRequirerCharm(ops.CharmBase):
     """Class for requirer charm testing."""
 
