@@ -68,7 +68,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 14
+LIBPATCH = 15
 
 PYDEPS = ["pydantic>=2"]
 
@@ -295,11 +295,19 @@ class SmtpRequires(ops.Object):
         relation_data = relation.data[relation.app]
         if not relation_data:
             return None
+
+        password = relation_data.get("password")
+        if relation_data.get("password_id"):
+            password = (
+                self.model.get_secret(id=relation_data.get("password_id"))
+                .get_content()
+                .get("password")
+            )
         return SmtpRelationData(
             host=typing.cast(str, relation_data.get("host")),
             port=typing.cast(int, relation_data.get("port")),
             user=relation_data.get("user"),
-            password=relation_data.get("password"),
+            password=password,
             password_id=relation_data.get("password_id"),
             auth_type=AuthType(relation_data.get("auth_type")),
             transport_security=TransportSecurity(relation_data.get("transport_security")),
