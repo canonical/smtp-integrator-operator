@@ -245,7 +245,7 @@ def test_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(is_leader)
-    password = "secret"
+    password = secrets.token_hex()
     secret_id = harness.add_user_secret({"password": password})
     harness.grant_secret(secret_id, "smtp-consumer")
     SAMPLE_RELATION_DATA["password_id"] = secret_id
