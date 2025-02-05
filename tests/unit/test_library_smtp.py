@@ -42,6 +42,7 @@ SAMPLE_LEGACY_RELATION_DATA = {
     **RELATION_DATA,
     "password": secrets.token_hex(),
 }
+
 SAMPLE_RELATION_DATA = {
     "host": "example.smtp",
     "port": "25",
@@ -245,12 +246,14 @@ def test_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(is_leader)
+
     password = secrets.token_hex()
     secret_id = harness.add_user_secret({"password": password})
     harness.grant_secret(secret_id, "smtp-consumer")
     SAMPLE_RELATION_DATA["password_id"] = secret_id
     harness.add_relation("smtp", "smtp-provider", app_data=SAMPLE_RELATION_DATA)
     relation_data = harness.charm.smtp.get_relation_data()
+
     assert relation_data
     assert relation_data.host == SAMPLE_RELATION_DATA["host"]
     assert relation_data.port == int(SAMPLE_RELATION_DATA["port"])

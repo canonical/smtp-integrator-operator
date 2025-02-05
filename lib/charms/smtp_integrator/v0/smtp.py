@@ -297,12 +297,13 @@ class SmtpRequires(ops.Object):
             return None
 
         password = relation_data.get("password")
-        if relation_data.get("password_id"):
+        if password is None and relation_data.get("password_id"):
             password = (
                 self.model.get_secret(id=relation_data.get("password_id"))
                 .get_content()
                 .get("password")
             )
+
         return SmtpRelationData(
             host=typing.cast(str, relation_data.get("host")),
             port=typing.cast(int, relation_data.get("port")),
