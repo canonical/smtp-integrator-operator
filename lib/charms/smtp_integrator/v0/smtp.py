@@ -89,6 +89,14 @@ DEFAULT_RELATION_NAME = "smtp"
 LEGACY_RELATION_NAME = "smtp-legacy"
 
 
+class SmtpError(Exception):
+    """Common ancestor for Smtp related exceptions."""
+
+
+class SecretError(SmtpError):
+    """Common ancestor for Secrets related exceptions."""
+
+
 class TransportSecurity(str, Enum):
     """Represent the transport security values.
 
@@ -298,11 +306,16 @@ class SmtpRequires(ops.Object):
 
         password = relation_data.get("password")
         if password is None and relation_data.get("password_id"):
-            password = (
-                self.model.get_secret(id=relation_data.get("password_id"))
-                .get_content()
-                .get("password")
-            )
+            try:
+                password = (
+                    self.model.get_secret(id=relation_data.get("password_id"))
+                    .get_content()
+                    .get("password")
+                )
+            except ops.model.ModelError as exc:
+                raise SecretError(
+                    f"Could not consume secret {relation_data.get('password_id')}"
+                ) from exc
 
         return SmtpRelationData(
             host=typing.cast(str, relation_data.get("host")),
