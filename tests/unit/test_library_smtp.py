@@ -42,9 +42,15 @@ SAMPLE_LEGACY_RELATION_DATA = {
     **RELATION_DATA,
     "password": secrets.token_hex(),
 }
+
 SAMPLE_RELATION_DATA = {
-    **RELATION_DATA,
-    "password_id": secrets.token_hex(),
+    "host": "example.smtp",
+    "port": "25",
+    "user": "example_user",
+    "auth_type": "none",
+    "transport_security": "none",
+    "domain": "domain",
+    "skip_ssl_verify": "False",
 }
 
 
@@ -240,19 +246,24 @@ def test_requirer_charm_with_valid_relation_data_emits_event(is_leader):
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(is_leader)
-    harness.add_relation("smtp", "smtp-provider", app_data=SAMPLE_RELATION_DATA)
 
-    assert len(harness.charm.events) == 1
-    assert harness.charm.events[0].host == SAMPLE_RELATION_DATA["host"]
-    assert harness.charm.events[0].port == int(SAMPLE_RELATION_DATA["port"])
-    assert harness.charm.events[0].user == SAMPLE_RELATION_DATA["user"]
-    assert harness.charm.events[0].password_id == SAMPLE_RELATION_DATA["password_id"]
-    assert harness.charm.events[0].auth_type == SAMPLE_RELATION_DATA["auth_type"]
-    assert harness.charm.events[0].transport_security == SAMPLE_RELATION_DATA["transport_security"]
-    assert harness.charm.events[0].domain == SAMPLE_RELATION_DATA["domain"]
-    assert harness.charm.events[0].skip_ssl_verify == literal_eval(
-        SAMPLE_RELATION_DATA["skip_ssl_verify"]
-    )
+    password = secrets.token_hex()
+    secret_id = harness.add_user_secret({"password": password})
+    harness.grant_secret(secret_id, "smtp-consumer")
+    SAMPLE_RELATION_DATA["password_id"] = secret_id
+    harness.add_relation("smtp", "smtp-provider", app_data=SAMPLE_RELATION_DATA)
+    relation_data = harness.charm.smtp.get_relation_data()
+
+    assert relation_data
+    assert relation_data.host == SAMPLE_RELATION_DATA["host"]
+    assert relation_data.port == int(SAMPLE_RELATION_DATA["port"])
+    assert relation_data.user == SAMPLE_RELATION_DATA["user"]
+    assert relation_data.password_id == SAMPLE_RELATION_DATA["password_id"]
+    assert relation_data.password == password
+    assert relation_data.auth_type == SAMPLE_RELATION_DATA["auth_type"]
+    assert relation_data.transport_security == SAMPLE_RELATION_DATA["transport_security"]
+    assert relation_data.domain == SAMPLE_RELATION_DATA["domain"]
+    assert relation_data.skip_ssl_verify == literal_eval(SAMPLE_RELATION_DATA["skip_ssl_verify"])
 
 
 @pytest.mark.parametrize("is_leader", [True, False])
