@@ -13,10 +13,10 @@ According to the [Juju SDK](https://canonical-juju.readthedocs-hosted.com/en/lat
 
 For this charm, the following events are observed:
 
-1. [config-changed](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/hook/#config-changed): Usually fired in response to a configuration change using the GUI or CLI. Action: validate the configuration and propagate the SMTP configuration through the relation.
-2. [update-status](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/hook/#update-status): Fired periodically. Action: propagate the SMTP configuration through the relation.
-3. [smtp-relation-created](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/hook/#endpoint-relation-created): Custom event for when a new SMTP relations joins. Action: write the SMTP details in the relation databag. The `smtp` integration will share a secret id across the relation the requirer will be able to access to retrieve the password.
-4. [smtp-legacy-relation-created](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/hook/#endpoint-relation-created): Custom event for when a new legacy SMTP relations joins. Action: write the SMTP details in the relation databag. The `smtp-legacy` integration will share the password across the relation.
+1. [config-changed](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/hook/#config-changed): Usually fired in response to a configuration change using the GUI or CLI. **Action**: validate the configuration and propagate the SMTP configuration through the relation.
+2. [update-status](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/hook/#update-status): Fired periodically. **Action**: propagate the SMTP configuration through the relation.
+3. [smtp-relation-created](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/hook/#endpoint-relation-created): Custom event for when a new SMTP relations joins. **Action**: write the SMTP details in the relation databag. The `smtp` integration will share a secret id across the relation the requirer will be able to access to retrieve the password.
+4. [smtp-legacy-relation-created](https://canonical-juju.readthedocs-hosted.com/en/latest/user/reference/hook/#endpoint-relation-created): Custom event for when a new legacy SMTP relations joins. **Action**: write the SMTP details in the relation databag. The `smtp-legacy` integration will share the password across the relation.
 
 ## Charm code overview
 
