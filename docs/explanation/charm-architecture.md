@@ -1,6 +1,6 @@
 # Charm architecture
 
-The SMTP Integrator charm fetches centralizes SMTP configuration and propagates it through a Juju integration.
+The SMTP Integrator charm fetches a centralized SMTP configuration and propagates it through a Juju integration.
 
 The SMTP Integrator can be deployed in Kubernetes and machine models.
 As a workloadless charm, the SMTP Integrator doesn't have any OCI images.
