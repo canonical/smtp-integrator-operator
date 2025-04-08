@@ -2,4 +2,3 @@ rules:
   # Ignore "whitelist" - pylint uses this terminology and it would be
   # confusing to change in this charm while upstream continues to use it.
   - name: whitelist
- 
