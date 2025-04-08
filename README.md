@@ -5,40 +5,37 @@
 
 # SMTP Integrator Operator
 
-A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators)
-deploying and managing a SMTP Integrator on Kubernetes and bare metal. SMTP
-is an Internet standard communication protocol for email transmission.
-
-This charm simplifies configuration of SMTP client by providing a single point
-of configuration for all the requirers using the same SMTP server. It can be
-deployed on many different Kubernetes platforms, from [MicroK8s](https://microk8s.io)
-to [Charmed Kubernetes](https://ubuntu.com/kubernetes), public cloud Kubernetes
-offerings and virtual machines or bare metal.
-
-As such, the charm makes it easy to manage and propagate SMTP configuration, while
-giving the freedom to deploy on the substrate of their choice.
+A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) 
+for deploying and managing an SMTP integrator on Kubernetes or bare metal. 
+The SMTP integrator provides SMTP connection information to other charms 
+that require `smtp` integration, facilitating the email-sending capabilities 
+of those charms.
 
 For DevOps or SRE teams this charm will make operating any charm requiring SMTP
 authentication simple and straightforward through Juju's clean interface.
 
+For information about how to deploy, integrate, and manage this charm,
+see the Official [SMTP Integrator Operator Documentation](https://charmhub.io/smtp-integrator).
+
+## Get started
+
+You can follow the tutorial [here](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started).
+
+### Basic operations
+
+The smtp-integrator charm is a charm intended to be used to provide SMTP 
+connection information via the `smtp` Juju integration to other charms. 
+The smtp-integrator charm is first configured with the desired SMTP connection
+information, and any charm that integrates with the smtp-integrator 
+charm can obtain the configured SMTP connection information via the 
+`smtp` Juju integration.
+
+## Learn more
+* [Read more](https://charmhub.io/smtp-integrator)
+* [SAML specification](https://www.oasis-open.org/standard/smtp/)
+* [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
+
 ## Project and community
-
-The SMTP Integrator Operator is a member of the Ubuntu family. It's an open source
-project that warmly welcomes community projects, contributions, suggestions,
-fixes and constructive feedback.
-* [Code of conduct](https://ubuntu.com/community/code-of-conduct)
-* [Get support](https://discourse.charmhub.io/)
-* [Join our online chat](https://chat.charmhub.io/charmhub/channels/charm-dev)
-* [Contribute](https://charmhub.io/smtp-integrator/docs/how-to-contribute)
-Thinking about using the SMTP Integrator Operator for your next project? [Get in touch](https://chat.charmhub.io/charmhub/channels/charm-dev)!
-
-## Contributing to this documentation
-
-Documentation is an important part of this project, and we take the same open-source approach to the documentation as the code. As such, we welcome community contributions, suggestions and constructive feedback on our documentation. Our documentation is hosted on the [Charmhub forum](https://charmhub.io/smtp-integrator/docs) to enable easy collaboration. Please use the "Help us improve this documentation" links on each documentation page to either directly change something you see that's wrong, ask a question, or make a suggestion about a potential change via the comments section.
-
-If there's a particular area of documentation that you'd like to see that's missing, please [file a bug](https://github.com/canonical/smtp-integrator-operator/issues).
-
----
-
-For further details,
-[see the charm's detailed documentation](https://charmhub.io/smtp-integrator/docs).
+* [Issues](https://github.com/canonical/smtp-integrator-operator/issues)
+* [Contributing](https://charmhub.io/smtp-integrator/docs/how-to-contribute)
+* [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)

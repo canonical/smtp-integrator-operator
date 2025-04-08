@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright 2024 Canonical Ltd.
+# Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
 """SMTP Integrator Charm service."""
@@ -143,6 +143,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             auth_type=self._charm_state.auth_type,
             transport_security=self._charm_state.transport_security,
             domain=self._charm_state.domain,
+            skip_ssl_verify=self._charm_state.skip_ssl_verify,
         )
 
     def _get_smtp_data(self) -> smtp.SmtpRelationData:
@@ -162,6 +163,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             auth_type=self._charm_state.auth_type,
             transport_security=self._charm_state.transport_security,
             domain=self._charm_state.domain,
+            skip_ssl_verify=self._charm_state.skip_ssl_verify,
         )
 
     def _has_secrets(self) -> bool:

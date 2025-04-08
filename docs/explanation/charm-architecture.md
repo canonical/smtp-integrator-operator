@@ -27,3 +27,4 @@ CharmBase is the base class from which all Charms are formed, defined by [Ops](h
 See more information in [Ops documentation](https://juju.is/docs/sdk/ops).
 
 The `__init__` method guarantees that the charm observes all events relevant to its operation and handles them.
+
