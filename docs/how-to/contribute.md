@@ -9,7 +9,6 @@ This document explains the processes and practices recommended for contributing 
   * code quality
   * test coverage
   * user experience for Juju administrators of this charm.
-* Please generate src documentation for every commit. See the section below for more details.
 For more details, check our [contributing guide](https://github.com/canonical/is-charms-contributing-guide/blob/main/CONTRIBUTING.md).
 
 ## Developing
@@ -30,15 +29,6 @@ To build and deploy a local version of the charm, simply run:
 charmcraft pack
 # Ensure you're connected to a juju model, assuming you're on amd64
 juju deploy ./smtp-integrator_ubuntu-22.04-amd64.charm
-```
-
-### Generating src docs for every commit
-
-Run the following command:
-
-```bash
-echo -e "tox -e src-docs\ngit add src-docs\n" >> .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
 ```
 
 ## Canonical contributor agreement
