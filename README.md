@@ -3,7 +3,7 @@
 [![Promote charm](https://github.com/canonical/smtp-integrator-operator/actions/workflows/promote_charm.yaml/badge.svg)](https://github.com/canonical/smtp-integrator-operator/actions/workflows/promote_charm.yaml)
 [![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
 
-# SMTP Integrator Operator
+# SMTP integrator operator
 
 A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) 
 for deploying and managing an SMTP integrator on Kubernetes or bare metal. 
