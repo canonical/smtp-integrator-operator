@@ -27,7 +27,7 @@ fixes and constructive feedback.
 * [Join our online chat](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
 * [Contribute](https://charmhub.io/smtp-integrator/docs/how-to-contribute)
 
-Thinking about using the SAML Integrator Operator for your next project? [Get in touch](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)!
+Thinking about using the SMTP Integrator Operator for your next project? [Get in touch](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)!
 
 # Contents
 
