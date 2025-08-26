@@ -5,7 +5,7 @@
 
 # SMTP integrator operator
 
-A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) 
+A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/) 
 for deploying and managing an SMTP integrator on Kubernetes or bare metal. 
 The SMTP integrator provides SMTP connection information to other charms 
 that require `smtp` integration, facilitating the email-sending capabilities 
@@ -32,7 +32,7 @@ charm can obtain the configured SMTP connection information via the
 
 ## Learn more
 * [Read more](https://charmhub.io/smtp-integrator)
-* [SAML specification](https://www.oasis-open.org/standard/smtp/)
+* [SMTP specification](https://www.rfc-editor.org/rfc/rfc788)
 * [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
 
 ## Project and community
