@@ -92,7 +92,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
                 del peer_relation.data[self.app][secret_id]
         if not secret:
             # https://github.com/canonical/operator/issues/2025
-            secret = self.app.add_secret({"palceholder": "placeholder"})
+            secret = self.app.add_secret({"placeholder": "placeholder"})
         if self._charm_state.password:
             secret.set_content({"password": self._charm_state.password})
             peer_relation.data[self.app].update({"secret-id": typing.cast(str, secret.id)})
