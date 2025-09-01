@@ -7,7 +7,6 @@
 
 import logging
 import typing
-from typing import Optional
 
 import ops
 from charms.smtp_integrator.v0 import smtp
