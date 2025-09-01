@@ -54,8 +54,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             return
         if self._has_secrets():
             secret = self._store_password_as_secret()
-            if secret:
-                secret.grant(event.relation)
+            secret.grant(event.relation)
         self._update_smtp_relation(event.relation)
 
     def _on_legacy_relation_created(self, event: ops.RelationCreatedEvent) -> None:
@@ -76,7 +75,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         self._update_relations()
         self.unit.status = ops.ActiveStatus()
 
-    def _store_password_as_secret(self) -> Optional[ops.Secret]:
+    def _store_password_as_secret(self) -> ops.Secret:
         """Store the SMTP password as a secret.
 
         Returns:
@@ -91,17 +90,16 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             except ops.SecretNotFoundError as exc:
                 logger.exception("Failed to get secret id %s: %s", secret_id, str(exc))
                 del peer_relation.data[self.app][secret_id]
-        if self._charm_state.password and not secret:
-            secret = self.app.add_secret({"password": self._charm_state.password})
+        if not secret:
+            # https://github.com/canonical/operator/issues/2025
+            secret = self.app.add_secret({"palceholder": "placeholder"})
+        if self._charm_state.password:
+            secret.set_content({"password": self._charm_state.password})
             peer_relation.data[self.app].update({"secret-id": typing.cast(str, secret.id)})
             return secret
-        if self._charm_state.password and secret:
-            secret.set_content({"password": self._charm_state.password})
-            return secret
-        if secret and secret_id:
-            secret.remove_all_revisions()
+        if secret_id:
             del peer_relation.data[self.app][secret_id]
-        return None
+        return secret
 
     def _update_relations(self) -> None:
         """Update all SMTP data for the existing relations."""
