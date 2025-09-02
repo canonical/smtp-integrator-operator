@@ -92,7 +92,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         if not secret:
             try:
                 secret = self.model.get_secret(label=smtp.PASSWORD_SECRET_LABEL)
-            except ops.SecretNotFoundError as exc:
+            except ops.SecretNotFoundError:
                 # https://github.com/canonical/operator/issues/2025
                 secret = self.app.add_secret(
                     {"placeholder": "placeholder"}, label=smtp.PASSWORD_SECRET_LABEL
