@@ -85,7 +85,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         secret = None
         if secret_id := peer_relation.data[self.app].get("secret-id"):
             try:
-                secret = self.model.get_secret(id=secret_id)
+                secret = self.model.get_secret(id=secret_id, label=smtp.PASSWORD_SECRET_LABEL)
             except ops.SecretNotFoundError as exc:
                 logger.exception("Failed to get secret id %s: %s", secret_id, str(exc))
                 del peer_relation.data[self.app][secret_id]
