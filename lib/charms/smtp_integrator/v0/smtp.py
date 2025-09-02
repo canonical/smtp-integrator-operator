@@ -366,7 +366,7 @@ class SmtpRequires(ops.Object):
                 logger.warning('Insecure setting: transport_security has value "none"')
             if self._is_relation_data_valid(event.relation):
                 self.on.smtp_data_available.emit(event.relation, app=event.app, unit=event.unit)
-    
+
     def _on_secret_changed(self, event: ops.SecretChangedEvent) -> None:
         """Handle the relation secret event.
 
@@ -375,7 +375,7 @@ class SmtpRequires(ops.Object):
         """
         if event.secret.label != PASSWORD_SECRET_LABEL:
             return
-        self.on.smtp_data_available.emit(app=event.app, unit=event.unit)
+        self.on.smtp_data_available.emit()
 
 
 class SmtpProvides(ops.Object):
