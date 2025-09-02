@@ -85,13 +85,15 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         secret = None
         if secret_id := peer_relation.data[self.app].get("secret-id"):
             try:
-                secret = self.model.get_secret(id=secret_id, label=smtp.PASSWORD_SECRET_LABEL)
+                secret = self.model.get_secret(id=secret_id)
             except ops.SecretNotFoundError as exc:
                 logger.exception("Failed to get secret id %s: %s", secret_id, str(exc))
                 del peer_relation.data[self.app][secret_id]
         if not secret:
             # https://github.com/canonical/operator/issues/2025
-            secret = self.app.add_secret({"placeholder": "placeholder"})
+            secret = self.app.add_secret(
+                {"placeholder": "placeholder"}, label=smtp.PASSWORD_SECRET_LABEL
+            )
         if self._charm_state.password:
             secret.set_content({"password": self._charm_state.password})
             peer_relation.data[self.app].update({"secret-id": typing.cast(str, secret.id)})
