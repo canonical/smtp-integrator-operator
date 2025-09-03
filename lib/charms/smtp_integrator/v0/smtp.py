@@ -87,7 +87,6 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_RELATION_NAME = "smtp"
 LEGACY_RELATION_NAME = "smtp-legacy"
-PASSWORD_SECRET_LABEL = "password-secret"
 
 
 class SmtpError(Exception):

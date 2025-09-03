@@ -15,6 +15,7 @@ from charm_state import CharmConfigInvalidError, CharmState
 
 logger = logging.getLogger(__name__)
 
+PASSWORD_SECRET_LABEL = "password-secret"
 VALID_LOG_LEVELS = ["info", "debug", "warning", "error", "critical"]
 
 
@@ -91,11 +92,11 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
                 del peer_relation.data[self.app][secret_id]
         if not secret:
             try:
-                secret = self.model.get_secret(label=smtp.PASSWORD_SECRET_LABEL)
+                secret = self.model.get_secret(label=PASSWORD_SECRET_LABEL)
             except ops.SecretNotFoundError:
                 # https://github.com/canonical/operator/issues/2025
                 secret = self.app.add_secret(
-                    {"placeholder": "placeholder"}, label=smtp.PASSWORD_SECRET_LABEL
+                    {"placeholder": "placeholder"}, label=PASSWORD_SECRET_LABEL
                 )
         if self._charm_state.password:
             secret.set_content({"password": self._charm_state.password})
