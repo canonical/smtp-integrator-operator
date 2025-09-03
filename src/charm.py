@@ -15,7 +15,7 @@ from charm_state import CharmConfigInvalidError, CharmState
 
 logger = logging.getLogger(__name__)
 
-PASSWORD_SECRET_LABEL = "password-secret"
+PASSWORD_SECRET_LABEL = "password-secret"  # nosec
 VALID_LOG_LEVELS = ["info", "debug", "warning", "error", "critical"]
 
 
