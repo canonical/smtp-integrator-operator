@@ -367,12 +367,8 @@ class SmtpRequires(ops.Object):
             if self._is_relation_data_valid(event.relation):
                 self.on.smtp_data_available.emit(event.relation, app=event.app, unit=event.unit)
 
-    def _on_secret_changed(self, event: ops.SecretChangedEvent) -> None:
-        """Handle the relation secret event.
-
-        Args:
-            event: event triggering this handler.
-        """
+    def _on_secret_changed(self, _: ops.SecretChangedEvent) -> None:
+        """Handle the relation secret event."""
         self.on.smtp_data_available.emit()
 
 
