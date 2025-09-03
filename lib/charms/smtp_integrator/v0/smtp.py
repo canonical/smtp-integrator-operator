@@ -373,8 +373,6 @@ class SmtpRequires(ops.Object):
         Args:
             event: event triggering this handler.
         """
-        if event.secret.label != PASSWORD_SECRET_LABEL:
-            return
         self.on.smtp_data_available.emit()
 
 
