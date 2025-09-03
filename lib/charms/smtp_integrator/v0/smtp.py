@@ -68,7 +68,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 15
+LIBPATCH = 16
 
 PYDEPS = ["pydantic>=2"]
 
@@ -278,6 +278,7 @@ class SmtpRequires(ops.Object):
         self.charm = charm
         self.relation_name = relation_name
         self.framework.observe(charm.on[relation_name].relation_changed, self._on_relation_changed)
+        self.framework.observe(charm.on.secret_changed, self._on_secret_changed)
 
     def get_relation_data(self) -> Optional[SmtpRelationData]:
         """Retrieve the relation data.
@@ -350,7 +351,7 @@ class SmtpRequires(ops.Object):
             return False
 
     def _on_relation_changed(self, event: ops.RelationChangedEvent) -> None:
-        """Event emitted when the relation has changed.
+        """Handle the relation changed event.
 
         Args:
             event: event triggering this handler.
@@ -364,6 +365,10 @@ class SmtpRequires(ops.Object):
                 logger.warning('Insecure setting: transport_security has value "none"')
             if self._is_relation_data_valid(event.relation):
                 self.on.smtp_data_available.emit(event.relation, app=event.app, unit=event.unit)
+
+    def _on_secret_changed(self, _: ops.SecretChangedEvent) -> None:
+        """Handle the relation secret event."""
+        self.on.smtp_data_available.emit()
 
 
 class SmtpProvides(ops.Object):
