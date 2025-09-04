@@ -68,7 +68,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 16
+LIBPATCH = 17
 
 PYDEPS = ["pydantic>=2"]
 
@@ -287,9 +287,9 @@ class SmtpRequires(ops.Object):
             SmtpRelationData: the relation data.
         """
         relation = self.model.get_relation(self.relation_name)
-        return self._get_relation_data_from_relation(relation) if relation else None
+        return self.get_relation_data_from_relation(relation) if relation else None
 
-    def _get_relation_data_from_relation(
+    def get_relation_data_from_relation(
         self, relation: ops.Relation
     ) -> Optional[SmtpRelationData]:
         """Retrieve the relation data.
@@ -299,6 +299,9 @@ class SmtpRequires(ops.Object):
 
         Returns:
             SmtpRelationData: the relation data.
+
+        Raises:
+            SecretError: if the secret can't be read.
         """
         assert relation.app
         relation_data = relation.data[relation.app]
@@ -340,7 +343,7 @@ class SmtpRequires(ops.Object):
             true: if the relation data is valid.
         """
         try:
-            _ = self._get_relation_data_from_relation(relation)
+            _ = self.get_relation_data_from_relation(relation)
             return True
         except ValidationError as ex:
             error_fields = set(
