@@ -314,6 +314,7 @@ def test_requirer_charm_get_relation_data_without_relation_data():
             for left_and_right in itertools.permutations(
                 [
                     "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
+                    "secret:d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
                     "secret://d2rhncfmp25c765918hg",
                     "secret:d2rhncfmp25c765918hg",
                     "d2rhncfmp25c765918hg",
@@ -326,22 +327,32 @@ def test_requirer_charm_get_relation_data_without_relation_data():
             for left_and_right in itertools.product(
                 [
                     "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
+                    "secret:d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
                     "secret://d2rhncfmp25c765918hg",
                     "secret:d2rhncfmp25c765918hg",
                     "d2rhncfmp25c765918hg",
                 ],
                 [
                     "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d3rhncfmp25c765918hg",
+                    "secret:d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d3rhncfmp25c765918hg",
                     "secret://d3rhncfmp25c765918hg",
                     "secret:d3rhncfmp25c765918hg",
                     "d3rhncfmp25c765918hg",
                 ],
             )
         ],
-        [
-            "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
-            "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677db/d2rhncfmp25c765918hg",
-            False,
+        *[
+            list(left_and_right) + [False]
+            for left_and_right in itertools.product(
+                [
+                    "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
+                    "secret:d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
+                ],
+                [
+                    "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677db/d2rhncfmp25c765918hg",
+                    "secret:d41591b7-fa4d-4b2b-8ae2-d6015d5677db/d2rhncfmp25c765918hg",
+                ],
+            )
         ],
     ],
 )
