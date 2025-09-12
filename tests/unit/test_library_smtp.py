@@ -2,12 +2,14 @@
 # See LICENSE file for licensing details.
 
 """SMTP library unit tests"""
+import itertools
 import secrets
 from ast import literal_eval
 
 import ops
 import pytest
 from charms.smtp_integrator.v0 import smtp
+from charms.smtp_integrator.v0.smtp import SmtpRequires
 from ops.testing import Harness
 
 REQUIRER_METADATA = """
@@ -302,3 +304,121 @@ def test_requirer_charm_get_relation_data_without_relation_data():
     harness.set_leader(True)
     harness.add_relation("smtp", "smtp-provider", app_data={})
     assert harness.charm.smtp.get_relation_data() is None
+
+
+@pytest.mark.parametrize(
+    "left,right,result",
+    [
+        *[
+            list(left_and_right) + [True]
+            for left_and_right in itertools.permutations(
+                [
+                    "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
+                    "secret://d2rhncfmp25c765918hg",
+                    "secret:d2rhncfmp25c765918hg",
+                    "d2rhncfmp25c765918hg",
+                ],
+                2,
+            )
+        ],
+        *[
+            list(left_and_right) + [False]
+            for left_and_right in itertools.product(
+                [
+                    "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
+                    "secret://d2rhncfmp25c765918hg",
+                    "secret:d2rhncfmp25c765918hg",
+                    "d2rhncfmp25c765918hg",
+                ],
+                [
+                    "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d3rhncfmp25c765918hg",
+                    "secret://d3rhncfmp25c765918hg",
+                    "secret:d3rhncfmp25c765918hg",
+                    "d3rhncfmp25c765918hg",
+                ],
+            )
+        ],
+        [
+            "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677da/d2rhncfmp25c765918hg",
+            "secret://d41591b7-fa4d-4b2b-8ae2-d6015d5677db/d2rhncfmp25c765918hg",
+            False,
+        ],
+    ],
+)
+def test_secret_uri_equal(left: str, right: str, result: bool):
+    """
+    arrange: none.
+    act: call _secret_uri_equal function with different input.
+    assert: _secret_uri_equal function should return True if the two input are the same secret.
+    """
+    # pylint: disable=protected-access
+    assert result == SmtpRequires._secret_uri_equal(left=left, right=right)
+    # pylint: disable=protected-access
+    assert result == SmtpRequires._secret_uri_equal(left=right, right=left)
+
+
+def test_requirer_charm_receive_event_on_secret_changed():
+    """
+    arrange: relate the smtp-consumer charm with three provider charm.
+    act: change secret content in the provider relation data.
+    assert: event should raise for the relation containing the changed secret.
+    """
+    harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
+    harness.begin()
+    harness.set_leader(True)
+    secret1 = harness.add_model_secret("smtp-provider-one", content={"password": "secret1.1"})
+    secret2 = harness.add_model_secret("smtp-provider-two", content={"password": "secret2.1"})
+    relation_id1 = harness.add_relation("smtp", "smtp-provider-one")
+    relation_id2 = harness.add_relation("smtp", "smtp-provider-two")
+    harness.grant_secret(secret_id=secret1, observer="smtp-consumer")
+    harness.grant_secret(secret_id=secret2, observer="smtp-consumer")
+    harness.update_relation_data(
+        relation_id1,
+        "smtp-provider-one",
+        {
+            "host": "1.example.smtp",
+            "port": "25",
+            "user": "example_user",
+            "password_id": secret1,
+            "auth_type": "plain",
+            "transport_security": "tls",
+            "domain": "domain",
+            "skip_ssl_verify": "False",
+        },
+    )
+    harness.update_relation_data(
+        relation_id2,
+        "smtp-provider-two",
+        {
+            "host": "2.example.smtp",
+            "port": "25",
+            "user": "example_user",
+            "password_id": secret2,
+            "auth_type": "plain",
+            "transport_security": "tls",
+            "domain": "domain",
+            "skip_ssl_verify": "False",
+        },
+    )
+    harness.add_relation(
+        "smtp",
+        "smtp-provider-three",
+        app_data={
+            "host": "example.smtp",
+            "port": "25",
+            "user": "example_user",
+            "auth_type": "none",
+            "transport_security": "none",
+            "domain": "domain",
+            "skip_ssl_verify": "False",
+        },
+    )
+    assert len(harness.charm.events) == 3
+    harness.set_secret_content(secret1, {"password": "secret1.2"})
+    assert len(harness.charm.events) == 4
+    assert harness.charm.events[-1].relation.app.name == "smtp-provider-one"
+    assert harness.charm.events[-1].relation.id == relation_id1
+    harness.set_secret_content(secret2, {"password": "secret2.2"})
+    assert len(harness.charm.events) == 5
+    assert harness.charm.events[-1].relation.app.name == "smtp-provider-two"
+    assert harness.charm.events[-1].relation.id == relation_id2
