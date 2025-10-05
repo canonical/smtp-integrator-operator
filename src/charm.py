@@ -5,18 +5,38 @@
 
 """SMTP Integrator Charm service."""
 
+import itertools
 import logging
 import typing
 
 import ops
+import pydantic
 from charms.smtp_integrator.v0 import smtp
-
-from charm_state import CharmConfigInvalidError, CharmState
 
 logger = logging.getLogger(__name__)
 
-PASSWORD_SECRET_LABEL = "password-secret"  # nosec
+PEER_RELATION_NAME = "smtp-peers"
 VALID_LOG_LEVELS = ["info", "debug", "warning", "error", "critical"]
+
+
+class CharmConfigInvalidError(Exception):
+    """Exception raised when a charm configuration is found to be invalid.
+
+    Attributes:
+        msg (str): Explanation of the error.
+    """
+
+    def __init__(self, msg: str):
+        """Initialize a new instance of the CharmConfigInvalidError exception.
+
+        Args:
+            msg (str): Explanation of the error.
+        """
+        self.msg = msg
+
+
+class NotReadyError(Exception):
+    """Exception raised when a charm is not ready yet."""
 
 
 class SmtpIntegratorOperatorCharm(ops.CharmBase):
@@ -29,145 +49,140 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             args: Arguments passed to the CharmBase parent constructor.
         """
         super().__init__(*args)
-        try:
-            self._charm_state = CharmState.from_charm(charm=self)
-        except CharmConfigInvalidError as exc:
-            self.model.unit.status = ops.BlockedStatus(exc.msg)
-            return
+
         self.smtp = smtp.SmtpProvides(self)
         self.smtp_legacy = smtp.SmtpProvides(self, relation_name=smtp.LEGACY_RELATION_NAME)
-        self.framework.observe(
-            self.on[smtp.LEGACY_RELATION_NAME].relation_created, self._on_legacy_relation_created
-        )
-        self.framework.observe(
-            self.on[smtp.DEFAULT_RELATION_NAME].relation_created, self._on_relation_created
-        )
-        self.framework.observe(self.on.config_changed, self._on_config_changed)
 
-    def _on_relation_created(self, event: ops.RelationCreatedEvent) -> None:
-        """Handle a change to the smtp relation.
+        peer_events = self.on[PEER_RELATION_NAME]
+        self.framework.observe(peer_events.relation_created, self._reconcile_event)
+        self.framework.observe(peer_events.relation_changed, self._reconcile_event)
 
-        Args:
-            event: relation created event.
-        """
-        if not self.model.unit.is_leader():
+        legacy_events = self.on[smtp.LEGACY_RELATION_NAME].relation_created
+        self.framework.observe(legacy_events, self._reconcile_event)
+
+        smtp_events = self.on[smtp.DEFAULT_RELATION_NAME]
+        self.framework.observe(smtp_events.relation_created, self._reconcile_event)
+        self.framework.observe(smtp_events.relation_broken, self._on_relation_broken)
+
+        self.framework.observe(self.on.config_changed, self._reconcile_event)
+
+    def _reconcile_event(self, _: ops.EventBase) -> None:
+        """Handle events that requires the reconciliation."""
+        try:
+            self._reconcile()
+            self.unit.status = ops.ActiveStatus()
+        except CharmConfigInvalidError as exc:
+            self.unit.status = ops.BlockedStatus(str(exc))
+        except NotReadyError as exc:
+            self.unit.status = ops.WaitingStatus(str(exc))
+
+    def _reconcile(self) -> None:
+        """Reconcile the SMTP integrator."""
+        if not self.unit.is_leader():
             return
-        if self._has_secrets():
-            secret = self._store_password_as_secret()
-            secret.grant(event.relation)
-        self._update_smtp_relation(event.relation)
+        # sanity test for the charm configuration
+        self._generate_smtp_data()
 
-    def _on_legacy_relation_created(self, event: ops.RelationCreatedEvent) -> None:
-        """Handle a change to the smtp-legacy relation.
+        self._reconcile_smtp_legacy()
+        self._reconcile_smtp()
 
-        Args:
-            event: relation created event.
-        """
-        if not self.model.unit.is_leader():
-            return
-        self._update_smtp_legacy_relation(event.relation)
-
-    def _on_config_changed(self, _) -> None:
-        """Handle changes in configuration."""
-        self.unit.status = ops.MaintenanceStatus("Configuring charm")
-        if self._has_secrets():
-            self._store_password_as_secret()
-        self._update_relations()
-        self.unit.status = ops.ActiveStatus()
-
-    def _store_password_as_secret(self) -> ops.Secret:
-        """Store the SMTP password as a secret.
-
-        Returns:
-            the secret id.
-        """
-        peer_relation = self.model.get_relation("smtp-peers")
-        assert peer_relation  # nosec
-        secret = None
-        if secret_id := peer_relation.data[self.app].get("secret-id"):
-            try:
-                secret = self.model.get_secret(id=secret_id)
-            except ops.SecretNotFoundError as exc:
-                logger.exception("Failed to get secret id %s: %s", secret_id, str(exc))
-                del peer_relation.data[self.app][secret_id]
-        if not secret:
-            try:
-                secret = self.model.get_secret(label=PASSWORD_SECRET_LABEL)
-            except ops.SecretNotFoundError:
-                # https://github.com/canonical/operator/issues/2025
-                secret = self.app.add_secret(
-                    {"placeholder": "placeholder"}, label=PASSWORD_SECRET_LABEL
-                )
-        if self._charm_state.password:
-            secret.set_content({"password": self._charm_state.password})
-            peer_relation.data[self.app].update({"secret-id": typing.cast(str, secret.id)})
-            return secret
-        if secret_id:
-            del peer_relation.data[self.app][secret_id]
-        return secret
-
-    def _update_relations(self) -> None:
-        """Update all SMTP data for the existing relations."""
-        if not self.model.unit.is_leader():
-            return
-        for relation in self.model.relations[self.smtp.relation_name]:
-            self._update_smtp_relation(relation)
+    def _reconcile_smtp_legacy(self) -> None:
+        """Reconcile smtp_legacy relations."""
         for relation in self.model.relations[self.smtp_legacy.relation_name]:
-            self._update_smtp_legacy_relation(relation)
+            new_data = self._generate_smtp_data()
+            new_data.password_id = None
+            self.smtp_legacy.update_relation_data(relation, new_data)
 
-    def _update_smtp_relation(self, relation: ops.Relation) -> None:
-        """Update the smtp relation databag.
+    def _reconcile_smtp(self):
+        """Reconcile smtp relations."""
+        for relation in self.model.relations[self.smtp.relation_name]:
+            if not self._has_secrets():
+                raise CharmConfigInvalidError("smtp relation is not supported in juju < 3.0.3")
+            new_data = self._generate_smtp_data()
+            secret = self._get_peer_secret()
+            if new_data.password_id:
+                secret.grant(relation)
+            if not new_data.password_id and secret is not None:
+                secret.revoke(relation=relation)
+            self.smtp.update_relation_data(relation, new_data)
 
-        Args:
-            relation: the relation for which to update the databag.
-        """
-        if self._has_secrets():
-            self.smtp.update_relation_data(relation, self._get_smtp_data())
-
-    def _update_smtp_legacy_relation(self, relation: ops.Relation) -> None:
-        """Update the smtp-legacy relation databag.
-
-        Args:
-            relation: the relation for which to update the databag.
-        """
-        self.smtp.update_relation_data(relation, self._get_legacy_smtp_data())
-
-    def _get_legacy_smtp_data(self) -> smtp.SmtpRelationData:
+    def _generate_smtp_data(self) -> smtp.SmtpRelationData:
         """Get relation data.
 
         Returns:
             SmtpRelationData containing the SMTP details.
         """
-        return smtp.SmtpRelationData(
-            host=self._charm_state.host,
-            port=self._charm_state.port,
-            user=self._charm_state.user,
-            password=self._charm_state.password,
-            auth_type=self._charm_state.auth_type,
-            transport_security=self._charm_state.transport_security,
-            domain=self._charm_state.domain,
-            skip_ssl_verify=self._charm_state.skip_ssl_verify,
-        )
+        password = typing.cast(typing.Optional[str], self.config.get("password"))
+        if password and self._has_secrets():
+            password_id = self._ensure_peer_secret(content={"password": password}).id
+        else:
+            password_id = None
+        try:
+            return smtp.SmtpRelationData(
+                host=self.config.get("host"),
+                port=self.config.get("port"),
+                user=self.config.get("user"),
+                password_id=password_id,
+                password=password,
+                auth_type=self.config.get("auth_type"),
+                transport_security=self.config.get("transport_security"),
+                domain=self.config.get("domain"),
+                skip_ssl_verify=self.config.get("skip_ssl_verify"),
+            )
+        except pydantic.ValidationError as exc:
+            error_fields = set(
+                itertools.chain.from_iterable(error["loc"] for error in exc.errors())
+            )
+            error_field_str = " ".join(str(f) for f in error_fields)
+            raise CharmConfigInvalidError(f"invalid configuration: {error_field_str}") from exc
 
-    def _get_smtp_data(self) -> smtp.SmtpRelationData:
-        """Get relation data.
+    def _on_relation_broken(self, event: ops.RelationBrokenEvent) -> None:
+        """Handle relation-broken events.
+
+        Args:
+            event: the relation broken event.
+        """
+        if not self.unit.is_leader():
+            return
+        secret = self._get_peer_secret()
+        if secret:
+            secret.revoke(event.relation)
+
+    def _get_peer_data(self) -> ops.RelationDataContent:
+        """Get peer relation data.
 
         Returns:
-            SmtpRelationData containing the SMTP details.
+            Peer relation data.
         """
-        peer_relation = self.model.get_relation("smtp-peers")
-        assert peer_relation  # nosec
-        password_id = peer_relation.data[self.app].get("secret-id")
-        return smtp.SmtpRelationData(
-            host=self._charm_state.host,
-            port=self._charm_state.port,
-            user=self._charm_state.user,
-            password_id=password_id,
-            auth_type=self._charm_state.auth_type,
-            transport_security=self._charm_state.transport_security,
-            domain=self._charm_state.domain,
-            skip_ssl_verify=self._charm_state.skip_ssl_verify,
-        )
+        peer_relation = self.model.get_relation(PEER_RELATION_NAME)
+        if not peer_relation:
+            raise NotReadyError("waiting for peer relation")
+        return peer_relation.data[self.app]
+
+    def _get_peer_secret(self) -> typing.Optional[ops.Secret]:
+        """Get the secret stored inside the peer relation.
+
+        Returns:
+            Secret stored inside the peer relation.
+        """
+        secret_id = self._get_peer_data().get("secret-id")
+        if not secret_id:
+            return None
+        return self.model.get_secret(id=secret_id)
+
+    def _ensure_peer_secret(self, content: dict) -> ops.Secret:
+        """Create a secret inside the peer relation, if the secret exists, update it.
+
+        Args:
+            content: create or update the secret with content
+        """
+        secret = self._get_peer_secret()
+        if secret is None:
+            secret = self.app.add_secret(content=content)
+        self._get_peer_data()["secret-id"] = typing.cast(str, secret.id)
+        if dict(secret.get_content(refresh=True)) != content:
+            secret.set_content(content)
+        return secret
 
     def _has_secrets(self) -> bool:
         """Check if current Juju version supports secrets.

@@ -28,7 +28,8 @@ def test_unconfigured_charm_reaches_blocked_status():
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
-    harness.begin()
+    harness.set_leader(True)
+    harness.begin_with_initial_hooks()
     assert harness.model.unit.status.name == ops.BlockedStatus().name
 
 
@@ -39,13 +40,14 @@ def test_misconfigured_port_charm_reaches_blocked_status():
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
     harness.update_config(
         {
             "host": "smtp.example",
             "port": 0,
         }
     )
-    harness.begin()
+    harness.begin_with_initial_hooks()
     assert harness.model.unit.status.name == ops.BlockedStatus().name
 
 
@@ -56,13 +58,14 @@ def test_misconfigured_auth_type_charm_reaches_blocked_status():
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
     harness.update_config(
         {
             **MINIMAL_CHARM_CONFIG,
             "auth_type": "nonexisting",
         }
     )
-    harness.begin()
+    harness.begin_with_initial_hooks()
     assert harness.model.unit.status.name == ops.BlockedStatus().name
 
 
@@ -73,13 +76,14 @@ def test_misconfigured_transport_security_charm_reaches_blocked_status():
     assert: the charm reaches BlockedStatus.
     """
     harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
     harness.update_config(
         {
             **MINIMAL_CHARM_CONFIG,
             "transport_security": "nonexisting",
         }
     )
-    harness.begin()
+    harness.begin_with_initial_hooks()
     assert harness.model.unit.status.name == ops.BlockedStatus().name
 
 
@@ -105,7 +109,7 @@ def test_legacy_relation_joined_populates_data():
     harness = Harness(SmtpIntegratorOperatorCharm)
     harness.set_leader(True)
     harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
-    harness.begin()
+    harness.begin_with_initial_hooks()
     harness.add_relation("smtp-legacy", "example")
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
     assert data["host"] == MINIMAL_CHARM_CONFIG_WITH_PASSWORD["host"]
@@ -122,7 +126,7 @@ def test_config_changed_joined_populates_data():
     harness = Harness(SmtpIntegratorOperatorCharm)
     harness.set_leader(True)
     harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
-    harness.begin()
+    harness.begin_with_initial_hooks()
     harness.add_relation("smtp-legacy", "example")
     harness.charm.on.config_changed.emit()
     data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
@@ -277,3 +281,134 @@ def test_relation_joined_when_not_leader(mock_juju_env):
     harness.add_relation("smtp", "example")
     data = harness.model.get_relation("smtp").data[harness.model.app]
     assert data == {}
+
+
+@patch.object(ops.JujuVersion, "from_environ")
+def test_smtp_relation_in_juju_2(mock_juju_env):
+    """
+    arrange: set up a charm in Juju 2 environment.
+    act: add a smtp relation.
+    assert: the charm should enter blocked state.
+    """
+    mock_juju_env.return_value = MagicMock(has_secrets=False)
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    harness.update_config(MINIMAL_CHARM_CONFIG)
+    harness.begin()
+    harness.add_relation("smtp-peers", harness.charm.app.name)
+    harness.charm.on.config_changed.emit()
+    harness.add_relation("smtp", "example")
+    assert harness.charm.unit.status.name == "blocked"
+
+
+@patch.object(ops.JujuVersion, "from_environ")
+def test_provider_charm_update_secret_content(mock_juju_env):
+    """
+    arrange: relate the smtp-consumer charm with a provider charm.
+    act: update the password configuration in the provider charm.
+    assert: secret content in the relation data should be updated.
+    """
+    mock_juju_env.return_value = MagicMock(has_secrets=True)
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.begin_with_initial_hooks()
+    harness.set_leader(True)
+    relation_id = harness.add_relation("smtp", "smtp-requirer")
+    harness.update_config(
+        {
+            "host": "example.smtp",
+            "port": 25,
+            "user": "example_user",
+            "auth_type": "plain",
+            "password": "foo",
+            "domain": "example.smtp",
+        }
+    )
+    relation_data = harness.get_relation_data(
+        relation_id=relation_id, app_or_unit=harness.charm.app
+    )
+    assert "password" not in relation_data
+    password_id = relation_data["password_id"]
+    assert harness.get_secret_grants(password_id, relation_id) == {"smtp-requirer"}
+    secret_content = harness.model.get_secret(id=password_id).get_content(refresh=True)
+    assert secret_content == {"password": "foo"}
+
+    harness.update_config(
+        {
+            "password": "bar",
+        }
+    )
+    relation_data = harness.get_relation_data(
+        relation_id=relation_id, app_or_unit=harness.charm.app
+    )
+    assert password_id == relation_data["password_id"]
+    secret_content = harness.model.get_secret(id=password_id).get_content(refresh=True)
+    assert secret_content == {"password": "bar"}
+
+
+@patch.object(ops.JujuVersion, "from_environ")
+def test_provider_charm_revoke_secret_on_broken(mock_juju_env):
+    """
+    arrange: relate the smtp-consumer charm with a provider charm.
+    act: remove the smtp relation.
+    assert: secrets inside the smtp relation should be removed.
+    """
+    mock_juju_env.return_value = MagicMock(has_secrets=True)
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.begin_with_initial_hooks()
+    harness.set_leader(True)
+    relation_id = harness.add_relation("smtp", "smtp-requirer")
+    harness.update_config(
+        {
+            "host": "example.smtp",
+            "port": 25,
+            "user": "example_user",
+            "auth_type": "plain",
+            "password": "foo",
+            "domain": "example.smtp",
+        }
+    )
+    relation_data = harness.get_relation_data(
+        relation_id=relation_id, app_or_unit=harness.charm.app
+    )
+    password_id = relation_data["password_id"]
+    assert "smtp-requirer" in harness.get_secret_grants(password_id, relation_id)
+
+    harness.remove_relation(relation_id)
+
+    assert "smtp-requirer" not in harness.get_secret_grants(password_id, relation_id)
+
+
+@patch.object(ops.JujuVersion, "from_environ")
+def test_provider_charm_update_secret_revision(mock_juju_env):
+    """
+    arrange: relate the smtp-consumer charm with a provider charm.
+    act: update the charm configuration in the provider charm.
+    assert: secret revision in the relation data should remain unchanged.
+    """
+    mock_juju_env.return_value = MagicMock(has_secrets=True)
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.begin_with_initial_hooks()
+    harness.set_leader(True)
+    relation_id = harness.add_relation("smtp", "smtp-requirer")
+    harness.update_config(
+        {
+            "host": "example.smtp",
+            "port": 25,
+            "user": "example_user",
+            "auth_type": "plain",
+            "password": "foo",
+            "domain": "example.smtp",
+        }
+    )
+    relation_data = harness.get_relation_data(
+        relation_id=relation_id, app_or_unit=harness.charm.app
+    )
+    password_id = relation_data["password_id"]
+    assert len(harness.get_secret_revisions(password_id)) == 1
+
+    harness.update_config(
+        {
+            "domain": "smtp.example",
+        }
+    )
+    assert len(harness.get_secret_revisions(password_id)) == 1

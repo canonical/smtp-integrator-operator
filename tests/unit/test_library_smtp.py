@@ -155,7 +155,6 @@ def test_smtp_relation_data_to_relation_data():
         "host": "example.smtp",
         "port": "25",
         "user": "example_user",
-        "password": smtp_data.password,
         "password_id": smtp_data.password_id,
         "auth_type": "plain",
         "transport_security": "tls",
