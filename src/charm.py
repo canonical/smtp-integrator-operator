@@ -80,7 +80,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
         """Reconcile the SMTP integrator."""
         if not self.unit.is_leader():
             return
-        # sanity test for the charm configuration
+        # check the charm configuration even there's no relation
         self._generate_smtp_data()
 
         self._reconcile_smtp_legacy()
