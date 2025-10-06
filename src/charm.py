@@ -104,6 +104,7 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
                 secret.grant(relation)
             if not new_data.password_id and secret is not None:
                 secret.revoke(relation=relation)
+            new_data.password = None
             self.smtp.update_relation_data(relation, new_data)
 
     def _generate_smtp_data(self) -> smtp.SmtpRelationData:
