@@ -171,7 +171,7 @@ class SmtpRelationData(BaseModel):
             result["password"] = self.password
         if self.password_id:
             if "password" in result:
-                logger.warning("password filed exists along with password_id field, removing.")
+                logger.warning("password field exists along with password_id field, removing.")
                 del result["password"]
             result["password_id"] = self.password_id
         return result
