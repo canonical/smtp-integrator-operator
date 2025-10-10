@@ -26,7 +26,12 @@ async def test_active(ops_test: OpsTest, app: ops.Application):
 
 @pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_relation(ops_test: OpsTest, app: ops.Application, any_charm: ops.Application, juju_version: str):
+async def test_relation(
+    ops_test: OpsTest,
+    app: ops.Application,
+    any_charm: ops.Application,
+    juju_version: str,
+):
     """
     arrange: deploy the charm.
     act: integrate the charm through the smtp relation and configure it.

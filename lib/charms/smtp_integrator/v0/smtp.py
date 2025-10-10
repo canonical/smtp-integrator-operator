@@ -324,7 +324,7 @@ class SmtpRequires(ops.Object):
                     f"Could not consume secret {relation_data.get('password_id')}"
                 ) from exc
 
-        return SmtpRelationData(**{**relation_data, "password": password})
+        return SmtpRelationData(**{**relation_data, "password": password})  # type: ignore
 
     def _is_relation_data_valid(self, relation: ops.Relation) -> bool:
         """Validate the relation data.
