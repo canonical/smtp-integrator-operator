@@ -32,7 +32,7 @@ async def test_relation(ops_test: OpsTest, app: ops.Application, any_charm: ops.
     act: integrate the charm through the smtp relation and configure it.
     assert: the charm reaches active status.
     """
-    if juju_version.split(".")[0] == 2:
+    if int(juju_version.split(".")[0]) == 2:
         pytest.skip("skip smtp relation tests on juju 2")
     assert ops_test.model
     relation_name = f"{app.name}:smtp"
