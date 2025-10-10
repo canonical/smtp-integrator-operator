@@ -62,6 +62,6 @@ async def any_charm(ops_test: OpsTest):
 @pytest_asyncio.fixture(scope="module")
 async def juju_version(ops_test: OpsTest):
     """Juju controller version."""
-    _, status, _ = await self.ops_test.juju("status", "--format", "json")
+    _, status, _ = await ops_test.juju("status", "--format", "json")
     status = json.loads(status)
     return status["model"]["version"]
