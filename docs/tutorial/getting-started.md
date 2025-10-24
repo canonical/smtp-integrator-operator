@@ -7,7 +7,7 @@ In this tutorial, we'll walk you through the process of deploying the SMTP Integ
 You will need:
 
 * A laptop or desktop running Ubuntu (or you can use a VM).
-* [Juju and MicroK8s](https://juju.is/docs/olm/microk8s) installed.
+* [Juju and MicroK8s](https://documentation.ubuntu.com/juju/3.6/reference/cloud/list-of-supported-clouds/the-microk8s-cloud-and-juju/) installed.
 
 ## Deploy this charm
 
