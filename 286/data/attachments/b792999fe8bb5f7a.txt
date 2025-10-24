@@ -1,0 +1,4 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:806 Connecting to existing model github-pr-7e138-microk8s:testing on unspecified cloud
+[32mINFO    [0m juju.model:model.py:2069 Deploying local:jammy/smtp-integrator-0
+[32mINFO    [0m juju.model:model.py:2759 Waiting for model:
+  smtp-integrator/0 [allocating] waiting: installing agent
