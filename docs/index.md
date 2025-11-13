@@ -36,6 +36,7 @@ Thinking about using the SMTP Integrator Operator for your next project? [Get in
 1. [How To](how-to)
   1. [How to configure SMTP](how-to/configure-smtp.md)
   1. [How to contribute](how-to/contribute.md)
+  1. [How to upgrade](how-to/upgrade.md)
 1. [Reference](reference)
   1. [Actions](reference/actions.md)
   1. [Configurations](reference/configurations.md)
