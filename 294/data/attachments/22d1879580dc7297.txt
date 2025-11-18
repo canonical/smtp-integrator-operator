@@ -1,0 +1,15 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model    Controller                Cloud/Region        Version  SLA          Timestamp
+testing  github-pr-ddc91-microk8s  microk8s/localhost  3.1.10   unsupported  04:57:05Z
+
+App              Version  Status  Scale  Charm            Channel  Rev  Address         Exposed  Message
+smtp-integrator           active      1  smtp-integrator             0  10.152.183.108  no       
+
+Unit                Workload  Agent  Address     Ports  Message
+smtp-integrator/0*  active    idle   10.1.126.9         
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...
