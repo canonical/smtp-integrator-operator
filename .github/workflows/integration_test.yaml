@@ -14,7 +14,7 @@ jobs:
       trivy-fs-enabled: true
       trivy-image-config: "trivy.yaml"
       channel: 1.28-strict/stable
-      juju-channel: 3.1/stable
+      juju-channel: 3.6/stable
   integration-tests-juju2:
     name: Integration test with juju 2.9
     uses: 
