@@ -53,6 +53,7 @@ async def any_charm(ops_test: OpsTest):
         "any-charm",
         application_name="any",
         channel="beta",
+        series="jammy"
         # Sync the python-packages here with smtp charm lib PYDEPS
         config={"src-overwrite": json.dumps(src_overwrite), "python-packages": "pydantic>=2"},
     )
