@@ -9,7 +9,7 @@ For details on configuration options, see [this page](https://charmhub.io/smtp-i
 | | |
 |--|--|
 | [Tutorials](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started)</br>  Get started - a hands-on introduction to using the SMTP Integrator operator for new users </br> |  [How-to guides](https://charmhub.io/smtp-integrator/docs/how-to-contribute) </br> Step-by-step guides covering key operations and common tasks |
-| [Reference](https://charmhub.io/smtp-integrator/docs/reference-actions) </br> Technical information - specifications, APIs, architecture | [Explanation](https://charmhub.io/smtp-integrator/docs/explanation-charm-architecture) </br> Concepts - discussion and clarification of key topics  |
+| [Reference](https://charmhub.io/smtp-integrator/docs/reference-actions) </br> Technical information - specifications, APIs, architecture | [Explanation]() </br> Concepts - discussion and clarification of key topics  |
 
 ## Contributing to this documentation
 
@@ -31,7 +31,6 @@ Thinking about using the SMTP Integrator Operator for your next project? [Get in
 
 # Contents
 
-1. [Explanation](explanation)
 1. [How To](how-to)
   1. [How to configure SMTP](how-to/configure-smtp.md)
   1. [How to contribute](how-to/contribute.md)
