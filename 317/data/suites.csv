@@ -1,0 +1,16 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"
+    arrange: deploy the charm.
+    act: configure the charm.
+    assert: the charm reaches active status.
+    ","38572","test_active","tests.integration","2026-01-03","passed","2026-01-03","","test_charm","",""
+"
+    arrange: deploy the charm.
+    act: integrate the charm through the smtp relation and configure it.
+    assert: the charm reaches active status.
+    ","36119","test_relation","tests.integration","2026-01-03","passed","2026-01-03","","test_charm","",""
+"
+    arrange: deploy the charm.
+    act: integrate the charm through the smtp-legacy relation and configure it.
+    assert: the charm reaches active status.
+    ","18979","test_legacy_relation","tests.integration","2026-01-03","passed","2026-01-03","","test_charm","",""
