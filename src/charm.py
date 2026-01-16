@@ -6,6 +6,7 @@
 """SMTP Integrator Charm service."""
 
 import itertools
+import json
 import logging
 import typing
 
@@ -118,6 +119,13 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             password_id = self._ensure_peer_secret(content={"password": password}).id
         else:
             password_id = None
+
+        recipients_cfg = typing.cast(typing.Optional[str], self.config.get("recipients"))
+        recipients_json = None
+        if recipients_cfg:
+            items = [s.strip() for s in recipients_cfg.split(",") if s.strip()]
+            recipients_json = json.dumps(items) if items else None
+
         try:
             return smtp.SmtpRelationData(
                 host=self.config.get("host"),
@@ -129,6 +137,8 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
                 transport_security=self.config.get("transport_security"),
                 domain=self.config.get("domain"),
                 skip_ssl_verify=self.config.get("skip_ssl_verify"),
+                smtp_sender=self.config.get("smtp_sender"),
+                recipients=recipients_json,
             )
         except pydantic.ValidationError as exc:
             error_fields = set(

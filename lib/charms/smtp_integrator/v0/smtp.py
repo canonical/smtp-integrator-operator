@@ -68,20 +68,22 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 19
+LIBPATCH = 20
 
-PYDEPS = ["pydantic>=2"]
+PYDEPS = ["pydantic>=2", "email-validator>=2"]
 
 # pylint: disable=wrong-import-position
 import itertools
+import json
 import logging
 import typing
 from ast import literal_eval
 from enum import Enum
-from typing import Dict, Optional
+from json import JSONDecodeError
+from typing import Any, Dict, List, Optional
 
 import ops
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, EmailStr, Field, ValidationError, field_validator
 
 logger = logging.getLogger(__name__)
 
@@ -138,6 +140,8 @@ class SmtpRelationData(BaseModel):
         transport_security: The security protocol to use for the outgoing SMTP relay.
         domain: The domain used by the emails sent from SMTP relay.
         skip_ssl_verify: Specifies if certificate trust verification is skipped in the SMTP relay.
+        smtp_sender: Optional sender email address for outgoing notifications.
+        recipients: Optional list of recipient email addresses for notifications.
     """
 
     host: str = Field(..., min_length=1)
@@ -149,6 +153,41 @@ class SmtpRelationData(BaseModel):
     transport_security: TransportSecurity
     domain: Optional[str] = None
     skip_ssl_verify: Optional[bool] = False
+    smtp_sender: Optional[EmailStr] = None
+    recipients: Optional[List[EmailStr]] = None
+
+    @field_validator("recipients", mode="before")
+    @classmethod
+    def parse_recipients(cls, v: Any) -> Any:
+        """Parse and validate the recipients field.
+
+        The recipients value is expected to be a JSON-encoded list of email
+        addresses such as '["a@example.com", "b@example.com"]'.
+
+        Args:
+            v: Raw recipients value from relation or configuration data.
+
+        Returns:
+            A list of recipient email addresses, or None if the value is
+            empty or unset.
+
+        Raises:
+            TypeError: If the value is not a string.
+            ValueError: If the value is not valid JSON or does not decode to a list.
+        """
+        if v is None or v == "":
+            return None
+        if not isinstance(v, str):
+            raise TypeError("recipients must be a JSON string")
+        try:
+            loaded = json.loads(v)
+        except (TypeError, JSONDecodeError) as exc:
+            raise ValueError("recipients must be a valid JSON list string") from exc
+
+        if not isinstance(loaded, list):
+            raise ValueError("recipients must be a JSON list")
+
+        return loaded
 
     def to_relation_data(self) -> Dict[str, str]:
         """Convert an instance of SmtpRelationData to the relation representation.
@@ -174,6 +213,13 @@ class SmtpRelationData(BaseModel):
                 logger.warning("password field exists along with password_id field, removing.")
                 del result["password"]
             result["password_id"] = self.password_id
+
+        if self.smtp_sender:
+            result["smtp_sender"] = str(self.smtp_sender)
+
+        if self.recipients:
+            result["recipients"] = json.dumps([str(r) for r in self.recipients])
+
         return result
 
 
@@ -190,6 +236,8 @@ class SmtpDataAvailableEvent(ops.RelationEvent):
         transport_security: The security protocol to use for the outgoing SMTP relay.
         domain: The domain used by the emails sent from SMTP relay.
         skip_ssl_verify: Specifies if certificate trust verification is skipped in the SMTP relay.
+        smtp_sender: Optional sender email address for outgoing notifications.
+        recipients: Optional list of recipient email addresses for notifications.
     """
 
     @property
@@ -247,6 +295,29 @@ class SmtpDataAvailableEvent(ops.RelationEvent):
         return literal_eval(
             typing.cast(str, self.relation.data[self.relation.app].get("skip_ssl_verify"))
         )
+
+    @property
+    def smtp_sender(self) -> Optional[str]:
+        """Fetch the SMTP sender from the relation.
+
+        Returns:
+            smtp_sender: Optional sender email address for outgoing notifications.
+        """
+        assert self.relation.app
+        return self.relation.data[self.relation.app].get("smtp_sender")
+
+    @property
+    def recipients(self) -> Optional[List[str]]:
+        """Fetch the SMTP recipients from the relation.
+
+        Returns:
+            recipients: Optional list of recipient email addresses for notifications.
+        """
+        assert self.relation.app
+        raw = self.relation.data[self.relation.app].get("recipients")
+        if not raw:
+            return None
+        return json.loads(raw)
 
 
 class SmtpRequiresEvents(ops.CharmEvents):

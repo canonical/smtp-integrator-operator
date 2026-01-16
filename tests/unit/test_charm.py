@@ -2,7 +2,7 @@
 # See LICENSE file for licensing details.
 
 """Unit tests."""
-
+import json
 import secrets
 from unittest.mock import MagicMock, patch
 
@@ -18,6 +18,18 @@ MINIMAL_CHARM_CONFIG = {
 MINIMAL_CHARM_CONFIG_WITH_PASSWORD = {
     **MINIMAL_CHARM_CONFIG,
     "password": secrets.token_hex(),
+}
+
+MINIMAL_CHARM_CONFIG_WITH_EMAILS = {
+    **MINIMAL_CHARM_CONFIG,
+    "smtp_sender": "no-reply@example.com",
+    "recipients": "a@x.com,b@y.com",
+}
+
+MINIMAL_CHARM_CONFIG_WITH_EMAILS_SPACES = {
+    **MINIMAL_CHARM_CONFIG,
+    "smtp_sender": "no-reply@example.com",
+    "recipients": "a@x.com, b@y.com  ,  c@z.com",
 }
 
 
@@ -412,3 +424,113 @@ def test_provider_charm_update_secret_revision(mock_juju_env):
         }
     )
     assert len(harness.get_secret_revisions(password_id)) == 1
+
+
+def test_smtp_sender_when_misconfigured_then_charm_reaches_blocked_status():
+    """
+    arrange: set up a charm with smtp_sender with invalid smtp_sender configuration.
+    act: None
+    assert: the charm reaches BlockedStatus.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    harness.update_config(
+        {
+            **MINIMAL_CHARM_CONFIG,
+            "smtp_sender": "not-an-email",
+        }
+    )
+    harness.begin_with_initial_hooks()
+    assert harness.model.unit.status.name == ops.BlockedStatus().name
+
+
+def test_smtp_sender_when_configured_then_charm_reaches_active_status():
+    """
+    arrange: set up a charm with valid smtp_sender and minimal config.
+    act: emit config_changed.
+    assert: the charm reaches ActiveStatus.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.update_config(
+        {
+            **MINIMAL_CHARM_CONFIG,
+            "smtp_sender": "no-reply@example.com",
+        }
+    )
+    harness.begin()
+    harness.charm.on.config_changed.emit()
+    assert harness.model.unit.status == ops.ActiveStatus()
+
+
+def test_recipients_when_misconfigured_then_charm_reaches_blocked_status():
+    """
+    arrange: set up a charm with recipients containing an invalid email.
+    act: none
+    assert: the charm reaches BlockedStatus.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    harness.update_config(
+        {
+            **MINIMAL_CHARM_CONFIG,
+            "recipients": "a@x.com,not-an-email",
+        }
+    )
+    harness.begin_with_initial_hooks()
+    assert harness.model.unit.status.name == ops.BlockedStatus().name
+
+
+def test_recipients_when_configured_then_charm_reaches_active_status():
+    """
+    arrange: set up a charm with valid recipients and minimal config.
+    act: emit config_changed.
+    assert: the charm reaches ActiveStatus.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.update_config(
+        {
+            **MINIMAL_CHARM_CONFIG,
+            "recipients": "a@x.com,b@y.com",
+        }
+    )
+    harness.begin()
+    harness.charm.on.config_changed.emit()
+    assert harness.model.unit.status == ops.ActiveStatus()
+
+
+def test_legacy_relation_joined_when_sender_or_recipients_configured_then_populates():
+    """
+    arrange: set up a charm with valid smtp_sender and recipients.
+    act: add smtp-legacy relation.
+    assert: relation data includes smtp_sender and recipients as JSON list string.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    harness.update_config(
+        {**MINIMAL_CHARM_CONFIG_WITH_PASSWORD, **MINIMAL_CHARM_CONFIG_WITH_EMAILS}
+    )
+    harness.begin_with_initial_hooks()
+
+    harness.add_relation("smtp-legacy", "example")
+    data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
+
+    assert data["smtp_sender"] == "no-reply@example.com"
+    assert json.loads(data["recipients"]) == ["a@x.com", "b@y.com"]
+
+
+def test_legacy_relation_joined_when_sender_or_recipients_unset_then_does_not_publish():
+    """
+    arrange: charm with minimal config only.
+    act: add smtp-legacy relation.
+    assert: smtp_sender and recipients keys are not present.
+    """
+    harness = Harness(SmtpIntegratorOperatorCharm)
+    harness.set_leader(True)
+    harness.update_config(MINIMAL_CHARM_CONFIG_WITH_PASSWORD)
+    harness.begin_with_initial_hooks()
+
+    harness.add_relation("smtp-legacy", "example")
+    data = harness.model.get_relation("smtp-legacy").data[harness.model.app]
+
+    assert "smtp_sender" not in data
+    assert "recipients" not in data
