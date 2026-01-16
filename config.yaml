@@ -30,3 +30,9 @@ options:
     description: Specifies if certificate trust verification is skipped in the SMTP relay
     type: boolean
     default: false
+  smtp_sender:
+    description: Optional sender email address for outgoing notifications (e.g. "no-reply@example.com").
+    type: string
+  recipients:
+    description:  Optional comma-separated list of recipient email addresses (e.g. "a@x.com,b@y.com").
+    type: string
