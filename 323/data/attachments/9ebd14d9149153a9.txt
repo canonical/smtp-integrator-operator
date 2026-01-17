@@ -1,0 +1,21 @@
+[33mWARNING [0m juju.model:model.py:1558 relate is deprecated and will be removed. Use integrate instead.
+[32mINFO    [0m juju.model:model.py:2759 Waiting for model:
+  smtp-integrator/0 [idle] active: 
+  any/0 [idle] active:
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model    Controller                Cloud/Region        Version  SLA          Timestamp
+testing  github-pr-bc13f-microk8s  microk8s/localhost  3.6.12   unsupported  15:13:41Z
+
+App              Version  Status  Scale  Charm            Channel      Rev  Address        Exposed  Message
+any                       active      1  any-charm        latest/beta  123  10.152.183.44  no       
+smtp-integrator           active      1  smtp-integrator                 0  10.152.183.78  no       
+
+Unit                Workload  Agent  Address     Ports  Message
+any/0*              active    idle   10.1.60.12         
+smtp-integrator/0*  active    idle   10.1.60.11         
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...
