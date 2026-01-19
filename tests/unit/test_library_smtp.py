@@ -14,6 +14,8 @@ from charms.smtp_integrator.v0 import smtp
 from charms.smtp_integrator.v0.smtp import SmtpRequires
 from ops.testing import Harness
 
+from lib.charms.smtp_integrator.v0.smtp import parse_recipients
+
 REQUIRER_METADATA = """
 name: smtp-consumer
 requires:
@@ -657,3 +659,43 @@ def test_relation_data_rejects_broken_json_list_string():
             skip_ssl_verify=False,
             recipients="[",
         )
+
+
+def test_parse_recipients_none_and_empty_then_returns_empty_list():
+    """
+    arrange: raw recipients value is None/empty/whitespace.
+    act: call parse_recipients with None/empty inputs.
+    assert: returns an empty list.
+    """
+    assert parse_recipients(None) == []
+    assert parse_recipients("") == []
+    assert parse_recipients("   ") == []
+
+
+def test_parse_recipients_when_comma_separated_and_single_input_then_return_list():
+    """
+    arrange: raw recipients value is a single email or comma-separated emails.
+    act: call parse_recipients with comma-separated and single inputs.
+    assert: returns a list of trimmed email strings.
+    """
+    assert parse_recipients("a@x.com") == ["a@x.com"]
+    assert parse_recipients("a@x.com,b@y.com") == ["a@x.com", "b@y.com"]
+    assert parse_recipients("a@x.com, b@y.com") == ["a@x.com", "b@y.com"]
+
+
+def test_parse_recipients_when_json_list_string_input_then_return_list():
+    """
+    arrange: raw recipients value is a JSON list string.
+    act: call parse_recipients with a JSON list string input.
+    assert: returns the parsed list of email strings.
+    """
+    assert parse_recipients('["a@x.com", "b@y.com"]') == ["a@x.com", "b@y.com"]
+
+
+def test_parse_recipients_when_bracketless_json_items_string_input_then_return_list():
+    """
+    arrange: raw recipients value is a bracketless JSON items string.
+    act: call parse_recipients with '"a@x.com", "b@y.com"'.
+    assert: returns a list of email strings.
+    """
+    assert parse_recipients('"a@x.com", "b@y.com"') == ["a@x.com", "b@y.com"]

@@ -79,7 +79,6 @@ import logging
 import typing
 from ast import literal_eval
 from enum import Enum
-from json import JSONDecodeError
 from typing import Any, Dict, List, Optional
 
 import ops
@@ -158,41 +157,9 @@ class SmtpRelationData(BaseModel):
 
     @field_validator("recipients", mode="before")
     @classmethod
-    def parse_recipients(cls, v: Any) -> Any:
-        """Parse and validate the recipients field.
-
-        The recipients value is expected to be a JSON-encoded list of email
-        addresses such as '["a@example.com", "b@example.com"]'.
-
-        Args:
-            v: Raw recipients value from relation or configuration data.
-
-        Returns:
-            A list of recipient email addresses (empty list if empty/unset).
-
-        Raises:
-            TypeError: If the value is not a string.
-            ValueError: If the value is not a valid JSON list.
-        """
-        if v is None:
-            return []
-        if not isinstance(v, str):
-            raise TypeError("recipients must be a string or None")
-
-        s = v.strip()
-        if not s:
-            return []
-
-        if s.startswith("["):
-            try:
-                loaded = json.loads(s)
-            except JSONDecodeError as exc:
-                raise ValueError("recipients must be a valid JSON list string") from exc
-            if not isinstance(loaded, list):
-                raise ValueError("recipients JSON must decode to a list")
-            return loaded
-
-        return [part.strip() for part in s.split(",") if part.strip()]
+    def _recipients_str_to_list(cls, value: Any) -> Any:
+        """Convert value to list[str]."""
+        return parse_recipients(value)
 
     def to_relation_data(self) -> Dict[str, str]:
         """Convert an instance of SmtpRelationData to the relation representation.
@@ -321,9 +288,7 @@ class SmtpDataAvailableEvent(ops.RelationEvent):
         """
         assert self.relation.app
         raw = self.relation.data[self.relation.app].get("recipients")
-        if not raw:
-            return []
-        return json.loads(raw)
+        return parse_recipients(raw)
 
 
 class SmtpRequiresEvents(ops.CharmEvents):
@@ -384,24 +349,27 @@ class SmtpRequires(ops.Object):
             SecretError: if the secret can't be read.
         """
         assert relation.app
-        relation_data = relation.data[relation.app]
-        if not relation_data:
+        raw_relation_data = relation.data[relation.app]
+        if not raw_relation_data:
             return None
 
-        password = relation_data.get("password")
-        if password is None and relation_data.get("password_id"):
+        data: Dict[str, Any] = dict(raw_relation_data)
+
+        password = data.get("password")
+        if password is None and data.get("password_id"):
             try:
                 password = (
-                    self.model.get_secret(id=relation_data.get("password_id"))
+                    self.model.get_secret(id=data["password_id"])
                     .get_content(refresh=True)
                     .get("password")
                 )
             except ops.model.ModelError as exc:
-                raise SecretError(
-                    f"Could not consume secret {relation_data.get('password_id')}"
-                ) from exc
+                raise SecretError(f"Could not consume secret {data.get('password_id')}") from exc
 
-        return SmtpRelationData(**{**relation_data, "password": password})  # type: ignore
+        # normalize here
+        data["recipients"] = parse_recipients(data.get("recipients"))
+
+        return SmtpRelationData(**{**data, "password": password})
 
     def _is_relation_data_valid(self, relation: ops.Relation) -> bool:
         """Validate the relation data.
@@ -508,3 +476,58 @@ class SmtpProvides(ops.Object):
             logger.info("update data in relation id:%s", relation.id)
             relation_data.clear()
             relation_data.update(new_data)
+
+
+def parse_recipients(raw: Any) -> list[str]:
+    """Normalize SMTP recipient input into a list of email strings.
+
+    The function produces a normalized list[str] so that downstream validation (EmailStr)
+    can be applied consistently.
+
+    Args:
+        raw: Recipient input as received from relation data, charm config,
+            May be None, str, or list.
+
+    Accepted input forms:
+        - None or empty string
+        - list of stripped string values
+        - JSON list string
+        - Comma-separated string
+        - Single address string
+
+    Returns:
+        A list of recipient strings. The email correctness is validated later by EmailStr.
+
+    Raises:
+        TypeError: If raw is not None, str or list.
+        ValueError: If a JSON-encoded value does not decode to a list.
+    """
+    if raw is None:
+        return []
+
+    if isinstance(raw, list):
+        return [str(x).strip() for x in raw if str(x).strip()]
+
+    if not isinstance(raw, str):
+        raise TypeError("recipients must be a string, list, or None")
+
+    s = raw.strip()
+    if not s:
+        return []
+
+    # JSON list string
+    if s.startswith("["):
+        loaded = json.loads(s)
+        if not isinstance(loaded, list):
+            raise ValueError("recipients JSON must decode to a list")
+        return [str(x).strip() for x in loaded if str(x).strip()]
+
+    # JSON without a bracelet: '"a@x.com", "b@y.com"'
+    if '"' in s and "," in s:
+        loaded = json.loads(f"[{s}]")
+        if not isinstance(loaded, list):
+            raise ValueError("recipients must decode to a list")
+        return [str(x).strip() for x in loaded if str(x).strip()]
+
+    # comma-separated or single
+    return [p.strip() for p in s.split(",") if p.strip()]
