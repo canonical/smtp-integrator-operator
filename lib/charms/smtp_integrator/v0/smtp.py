@@ -140,7 +140,7 @@ class SmtpRelationData(BaseModel):
         domain: The domain used by the emails sent from SMTP relay.
         skip_ssl_verify: Specifies if certificate trust verification is skipped in the SMTP relay.
         smtp_sender: Optional sender email address for outgoing notifications.
-        recipients: Optional list of recipient email addresses for notifications.
+        recipients: List of recipient email addresses for notifications.
     """
 
     host: str = Field(..., min_length=1)
@@ -210,7 +210,7 @@ class SmtpDataAvailableEvent(ops.RelationEvent):
         domain: The domain used by the emails sent from SMTP relay.
         skip_ssl_verify: Specifies if certificate trust verification is skipped in the SMTP relay.
         smtp_sender: Optional sender email address for outgoing notifications.
-        recipients: Optional list of recipient email addresses for notifications.
+        recipients: List of recipient email addresses for notifications.
     """
 
     @property
@@ -366,7 +366,7 @@ class SmtpRequires(ops.Object):
             except ops.model.ModelError as exc:
                 raise SecretError(f"Could not consume secret {data.get('password_id')}") from exc
 
-        # normalize here
+        # normalize recipients
         data["recipients"] = parse_recipients(data.get("recipients"))
 
         return SmtpRelationData(**{**data, "password": password})
