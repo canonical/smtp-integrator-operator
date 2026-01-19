@@ -606,4 +606,54 @@ def test_event_sender_and_recipients_are_none_when_unset():
     harness.add_relation("smtp-legacy", "smtp-provider", app_data=SAMPLE_LEGACY_RELATION_DATA)
     event = harness.charm.events[0]
     assert event.smtp_sender is None
-    assert event.recipients is None
+    assert event.recipients == []
+
+
+def test_get_relation_data_raises_secret_error_when_secret_missing(monkeypatch):
+    """
+    arrange: Relation data includes a password_id that does not exist.
+    act: Attempt to read relation data via get_relation_data_from_relation().
+    assert: SecretError is raised.
+    """
+    harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
+    harness.begin()
+    harness.set_leader(True)
+
+    rel_id = harness.add_relation("smtp", "smtp-provider")
+    relation = harness.model.get_relation("smtp", rel_id)
+    assert relation and relation.app
+
+    relation.data[relation.app].update({**RELATION_DATA, "password_id": "missing"})
+
+    def raise_model_error(*, id: str):  # pylint: disable=redefined-builtin
+        """Simulate Juju raising ModelError when a secret cannot be read.
+
+        Args:
+            id: Secret ID requested.
+
+        Raises:
+            ModelError: Always.
+        """
+        raise ops.model.ModelError("nope")
+
+    monkeypatch.setattr(harness.model, "get_secret", raise_model_error)
+
+    with pytest.raises(smtp.SecretError):
+        harness.charm.smtp.get_relation_data_from_relation(relation)
+
+
+def test_relation_data_rejects_broken_json_list_string():
+    """
+    arrange: recipients field contains an invalid JSON string.
+    act: build SmtpRelationData with the broken recipients value.
+    assert: ValidationError is raised.
+    """
+    with pytest.raises(pydantic.ValidationError):
+        smtp.SmtpRelationData(
+            host="example.smtp",
+            port=25,
+            auth_type="plain",
+            transport_security="tls",
+            skip_ssl_verify=False,
+            recipients="[",
+        )

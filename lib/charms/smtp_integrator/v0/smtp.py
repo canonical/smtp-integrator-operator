@@ -154,7 +154,7 @@ class SmtpRelationData(BaseModel):
     domain: Optional[str] = None
     skip_ssl_verify: Optional[bool] = False
     smtp_sender: Optional[EmailStr] = None
-    recipients: Optional[List[EmailStr]] = None
+    recipients: List[EmailStr] = Field(default_factory=list)
 
     @field_validator("recipients", mode="before")
     @classmethod
@@ -168,26 +168,31 @@ class SmtpRelationData(BaseModel):
             v: Raw recipients value from relation or configuration data.
 
         Returns:
-            A list of recipient email addresses, or None if the value is
-            empty or unset.
+            A list of recipient email addresses (empty list if empty/unset).
 
         Raises:
             TypeError: If the value is not a string.
-            ValueError: If the value is not valid JSON or does not decode to a list.
+            ValueError: If the value is not a valid JSON list.
         """
-        if v is None or v == "":
-            return None
+        if v is None:
+            return []
         if not isinstance(v, str):
-            raise TypeError("recipients must be a JSON string")
-        try:
-            loaded = json.loads(v)
-        except (TypeError, JSONDecodeError) as exc:
-            raise ValueError("recipients must be a valid JSON list string") from exc
+            raise TypeError("recipients must be a string or None")
 
-        if not isinstance(loaded, list):
-            raise ValueError("recipients must be a JSON list")
+        s = v.strip()
+        if not s:
+            return []
 
-        return loaded
+        if s.startswith("["):
+            try:
+                loaded = json.loads(s)
+            except JSONDecodeError as exc:
+                raise ValueError("recipients must be a valid JSON list string") from exc
+            if not isinstance(loaded, list):
+                raise ValueError("recipients JSON must decode to a list")
+            return loaded
+
+        return [part.strip() for part in s.split(",") if part.strip()]
 
     def to_relation_data(self) -> Dict[str, str]:
         """Convert an instance of SmtpRelationData to the relation representation.
@@ -218,7 +223,8 @@ class SmtpRelationData(BaseModel):
             result["smtp_sender"] = str(self.smtp_sender)
 
         if self.recipients:
-            result["recipients"] = json.dumps([str(r) for r in self.recipients])
+            recipients = list(self.recipients)
+            result["recipients"] = json.dumps([str(r) for r in recipients])
 
         return result
 
@@ -307,16 +313,16 @@ class SmtpDataAvailableEvent(ops.RelationEvent):
         return self.relation.data[self.relation.app].get("smtp_sender")
 
     @property
-    def recipients(self) -> Optional[List[str]]:
+    def recipients(self) -> List[str]:
         """Fetch the SMTP recipients from the relation.
 
         Returns:
-            recipients: Optional list of recipient email addresses for notifications.
+            recipients: list of recipient email addresses for notifications.
         """
         assert self.relation.app
         raw = self.relation.data[self.relation.app].get("recipients")
         if not raw:
-            return None
+            return []
         return json.loads(raw)
 
 
