@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """Fixtures for charm-relation-interfaces tests."""
+
 # pylint: disable=redefined-outer-name
 import pytest
 from interface_tester.plugin import InterfaceTester

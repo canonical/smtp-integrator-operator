@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """SMTP library unit tests"""
+
 import itertools
 import json
 import secrets
@@ -629,7 +630,7 @@ def test_get_relation_data_raises_secret_error_when_secret_missing(monkeypatch):
     relation = harness.model.get_relation("smtp", rel_id)
     assert relation and relation.app
 
-    relation.data[relation.app].update({**RELATION_DATA, "password_id": "missing"})
+    relation.data[relation.app].update({**RELATION_DATA, "password_id": "missing"})  # nosec B105
 
     def raise_model_error(*, id: str):  # pylint: disable=redefined-builtin
         """Simulate Juju raising ModelError when a secret cannot be read.

@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """SMTP interface tests."""
+
 import pytest
 from interface_tester import InterfaceTester
 

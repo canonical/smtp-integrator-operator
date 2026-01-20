@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """Unit tests."""
+
 import json
 import secrets
 from unittest.mock import MagicMock, patch
@@ -331,7 +332,7 @@ def test_provider_charm_update_secret_content(mock_juju_env):
             "port": 25,
             "user": "example_user",
             "auth_type": "plain",
-            "password": "foo",
+            "password": "foo",  # nosec B105
             "domain": "example.smtp",
         }
     )
@@ -342,11 +343,11 @@ def test_provider_charm_update_secret_content(mock_juju_env):
     password_id = relation_data["password_id"]
     assert harness.get_secret_grants(password_id, relation_id) == {"smtp-requirer"}
     secret_content = harness.model.get_secret(id=password_id).get_content(refresh=True)
-    assert secret_content == {"password": "foo"}
+    assert secret_content == {"password": "foo"}  # nosec B105
 
     harness.update_config(
         {
-            "password": "bar",
+            "password": "bar",  # nosec B105
         }
     )
     relation_data = harness.get_relation_data(
@@ -354,7 +355,7 @@ def test_provider_charm_update_secret_content(mock_juju_env):
     )
     assert password_id == relation_data["password_id"]
     secret_content = harness.model.get_secret(id=password_id).get_content(refresh=True)
-    assert secret_content == {"password": "bar"}
+    assert secret_content == {"password": "bar"}  # nosec B105
 
 
 @patch.object(ops.JujuVersion, "from_environ")
@@ -375,7 +376,7 @@ def test_provider_charm_revoke_secret_on_broken(mock_juju_env):
             "port": 25,
             "user": "example_user",
             "auth_type": "plain",
-            "password": "foo",
+            "password": "foo",  # nosec B105
             "domain": "example.smtp",
         }
     )
@@ -408,7 +409,7 @@ def test_provider_charm_update_secret_revision(mock_juju_env):
             "port": 25,
             "user": "example_user",
             "auth_type": "plain",
-            "password": "foo",
+            "password": "foo",  # nosec B105
             "domain": "example.smtp",
         }
     )
