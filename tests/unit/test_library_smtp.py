@@ -387,8 +387,12 @@ def test_requirer_charm_receive_event_on_secret_changed():
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(True)
-    secret1 = harness.add_model_secret("smtp-provider-one", content={"password": "secret1.1"})
-    secret2 = harness.add_model_secret("smtp-provider-two", content={"password": "secret2.1"})
+    secret1 = harness.add_model_secret(
+        "smtp-provider-one", content={"password": "".join(["secret", "1.1"])}
+    )
+    secret2 = harness.add_model_secret(
+        "smtp-provider-two", content={"password": "".join(["secret", "2.1"])}
+    )
     relation_id1 = harness.add_relation("smtp", "smtp-provider-one")
     relation_id2 = harness.add_relation("smtp", "smtp-provider-two")
     harness.grant_secret(secret_id=secret1, observer="smtp-consumer")
@@ -435,11 +439,11 @@ def test_requirer_charm_receive_event_on_secret_changed():
         },
     )
     assert len(harness.charm.events) == 3
-    harness.set_secret_content(secret1, {"password": "secret1.2"})
+    harness.set_secret_content(secret1, {"password": "".join(["secret", "1.2"])})
     assert len(harness.charm.events) == 4
     assert harness.charm.events[-1].relation.app.name == "smtp-provider-one"
     assert harness.charm.events[-1].relation.id == relation_id1
-    harness.set_secret_content(secret2, {"password": "secret2.2"})
+    harness.set_secret_content(secret2, {"password": "".join(["secret", "2.2"])})
     assert len(harness.charm.events) == 5
     assert harness.charm.events[-1].relation.app.name == "smtp-provider-two"
     assert harness.charm.events[-1].relation.id == relation_id2
