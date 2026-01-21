@@ -10,7 +10,7 @@ import ops
 import pytest
 from pytest_operator.plugin import OpsTest
 
-from tests.integration.helper import get_provider_app_databag_from_any_charm
+from tests.integration.helper import wait_for_provider_app_data
 
 
 @pytest.mark.asyncio
@@ -58,11 +58,12 @@ async def test_relation(
     await ops_test.model.wait_for_idle(status=status_name, raise_on_error=True)
     assert app.units[0].workload_status == status_name  # type: ignore
 
-    data = await get_provider_app_databag_from_any_charm(
+    data = await wait_for_provider_app_data(
         ops_test=ops_test,
         endpoint="smtp",
         provider_app_name=app.name,
     )
+
     assert data["smtp_sender"] == "no-reply@example.com"
     assert json.loads(data["recipients"]) == ["a@x.com", "b@y.com"]
 
@@ -92,7 +93,7 @@ async def test_legacy_relation(
     await ops_test.model.wait_for_idle(status=status_name, raise_on_error=True)
     assert app.units[0].workload_status == status_name  # type: ignore
 
-    data = await get_provider_app_databag_from_any_charm(
+    data = await wait_for_provider_app_data(
         ops_test=ops_test,
         endpoint="smtp-legacy",
         provider_app_name=app.name,
