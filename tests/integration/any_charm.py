@@ -4,6 +4,7 @@
 # pylint: disable=import-error,consider-using-with,no-member
 
 """This code snippet is used to be loaded into any-charm which is used for integration tests."""
+
 import smtp
 from any_charm_base import AnyCharmBase
 

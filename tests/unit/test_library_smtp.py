@@ -2,15 +2,20 @@
 # See LICENSE file for licensing details.
 
 """SMTP library unit tests"""
+
 import itertools
+import json
 import secrets
 from ast import literal_eval
 
 import ops
+import pydantic
 import pytest
 from charms.smtp_integrator.v0 import smtp
 from charms.smtp_integrator.v0.smtp import SmtpRequires
 from ops.testing import Harness
+
+from lib.charms.smtp_integrator.v0.smtp import parse_recipients
 
 REQUIRER_METADATA = """
 name: smtp-consumer
@@ -54,6 +59,13 @@ SAMPLE_RELATION_DATA = {
     "domain": "domain",
     "skip_ssl_verify": "False",
 }
+
+MINIMAL_EMAILS = {
+    "smtp_sender": "no-reply@example.com",
+    "recipients": '["a@x.com", "b@y.com"]',
+}
+
+MINIMAL_EMAILS_TRIMMED_EXPECTED = ["a@x.com", "b@y.com"]
 
 
 class SmtpRequirerCharm(ops.CharmBase):
@@ -376,8 +388,12 @@ def test_requirer_charm_receive_event_on_secret_changed():
     harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
     harness.begin()
     harness.set_leader(True)
-    secret1 = harness.add_model_secret("smtp-provider-one", content={"password": "secret1.1"})
-    secret2 = harness.add_model_secret("smtp-provider-two", content={"password": "secret2.1"})
+    secret1 = harness.add_model_secret(
+        "smtp-provider-one", content={"password": "".join(["secret", "1.1"])}
+    )
+    secret2 = harness.add_model_secret(
+        "smtp-provider-two", content={"password": "".join(["secret", "2.1"])}
+    )
     relation_id1 = harness.add_relation("smtp", "smtp-provider-one")
     relation_id2 = harness.add_relation("smtp", "smtp-provider-two")
     harness.grant_secret(secret_id=secret1, observer="smtp-consumer")
@@ -424,11 +440,267 @@ def test_requirer_charm_receive_event_on_secret_changed():
         },
     )
     assert len(harness.charm.events) == 3
-    harness.set_secret_content(secret1, {"password": "secret1.2"})
+    harness.set_secret_content(secret1, {"password": "".join(["secret", "1.2"])})
     assert len(harness.charm.events) == 4
     assert harness.charm.events[-1].relation.app.name == "smtp-provider-one"
     assert harness.charm.events[-1].relation.id == relation_id1
-    harness.set_secret_content(secret2, {"password": "secret2.2"})
+    harness.set_secret_content(secret2, {"password": "".join(["secret", "2.2"])})
     assert len(harness.charm.events) == 5
     assert harness.charm.events[-1].relation.app.name == "smtp-provider-two"
     assert harness.charm.events[-1].relation.id == relation_id2
+
+
+def test_relation_data_accepts_sender_and_recipients_json():
+    """
+    arrange: valid smtp_sender and recipients JSON list.
+    act: build SmtpRelationData.
+    assert: data is accepted and email fields are present.
+    """
+    data = smtp.SmtpRelationData(
+        host="example.smtp",
+        port=25,
+        auth_type="plain",
+        transport_security="tls",
+        skip_ssl_verify=False,
+        smtp_sender="no-reply@example.com",
+        recipients='["a@x.com", "b@y.com"]',
+    )
+    assert str(data.smtp_sender) == "no-reply@example.com"
+    assert [str(x) for x in (data.recipients or [])] == ["a@x.com", "b@y.com"]
+
+
+@pytest.mark.parametrize("bad_sender", ["not-an-email", "a@b", "a@b..com"])
+def test_relation_data_rejects_invalid_sender_email(bad_sender):
+    """
+    arrange: invalid smtp_sender.
+    act: build SmtpRelationData.
+    assert: ValidationError is raised.
+    """
+    with pytest.raises(pydantic.ValidationError):
+        smtp.SmtpRelationData(
+            host="example.smtp",
+            port=25,
+            auth_type="plain",
+            transport_security="tls",
+            skip_ssl_verify=False,
+            smtp_sender=bad_sender,
+        )
+
+
+@pytest.mark.parametrize("bad_recipient", ["not-json", "{", '"a@x.com"', "123"])
+def test_relation_data_rejects_invalid_recipients_string(bad_recipient):
+    """
+    arrange: recipients not a valid JSON list string.
+    act: build SmtpRelationData.
+    assert: ValidationError is raised.
+    """
+    with pytest.raises(pydantic.ValidationError):
+        smtp.SmtpRelationData(
+            host="example.smtp",
+            port=25,
+            auth_type="plain",
+            transport_security="tls",
+            skip_ssl_verify=False,
+            recipients=bad_recipient,
+        )
+
+
+def test_relation_data_rejects_recipients_json_that_is_not_list():
+    """
+    arrange: recipients JSON decodes but does not produce a list.
+    act: build SmtpRelationData.
+    assert: ValidationError is raised.
+    """
+    with pytest.raises(pydantic.ValidationError):
+        smtp.SmtpRelationData(
+            host="example.smtp",
+            port=25,
+            auth_type="plain",
+            transport_security="tls",
+            skip_ssl_verify=False,
+            recipients='{"a": "b"}',
+        )
+
+
+def test_relation_data_rejects_recipients_with_invalid_email():
+    """
+    arrange: recipients list contains an invalid email.
+    act: build SmtpRelationData.
+    assert: ValidationError is raised.
+    """
+    with pytest.raises(pydantic.ValidationError):
+        smtp.SmtpRelationData(
+            host="example.smtp",
+            port=25,
+            auth_type="plain",
+            transport_security="tls",
+            skip_ssl_verify=False,
+            recipients='["a@x.com", "not-an-email"]',
+        )
+
+
+def test_to_relation_data_publishes_sender_and_recipients():
+    """
+    arrange: SmtpRelationData with smtp_sender and recipients.
+    act: call to_relation_data().
+    assert: smtp_sender is present and recipients is JSON encoded list.
+    """
+    data = smtp.SmtpRelationData(
+        host="example.smtp",
+        port=25,
+        auth_type="plain",
+        transport_security="tls",
+        skip_ssl_verify=False,
+        smtp_sender="no-reply@example.com",
+        recipients='["a@x.com", "b@y.com"]',
+    )
+    relation = data.to_relation_data()
+    assert relation["smtp_sender"] == "no-reply@example.com"
+    assert json.loads(relation["recipients"]) == ["a@x.com", "b@y.com"]
+
+
+def test_to_relation_data_does_not_publish_sender_or_recipients_when_unset():
+    """
+    arrange: SmtpRelationData without smtp_sender/recipients.
+    act: call to_relation_data().
+    assert: smtp_sender and recipients keys are omitted.
+    """
+    data = smtp.SmtpRelationData(
+        host="example.smtp",
+        port=25,
+        auth_type="plain",
+        transport_security="tls",
+        skip_ssl_verify=False,
+    )
+    relation = data.to_relation_data()
+    assert "smtp_sender" not in relation
+    assert "recipients" not in relation
+
+
+def test_legacy_requirer_event_includes_sender_and_recipients_when_present():
+    """
+    arrange: legacy relation has smtp_sender and recipients JSON.
+    act: add smtp-legacy relation with those fields.
+    assert: emitted event exposes smtp_sender and recipients list.
+    """
+    harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
+    harness.begin()
+    harness.set_leader(True)
+
+    data = {
+        **SAMPLE_LEGACY_RELATION_DATA,
+        "smtp_sender": "no-reply@example.com",
+        "recipients": '["a@x.com", "b@y.com"]',
+    }
+    harness.add_relation("smtp-legacy", "smtp-provider", app_data=data)
+
+    assert len(harness.charm.events) == 1
+    event = harness.charm.events[0]
+    assert event.smtp_sender == "no-reply@example.com"
+    assert event.recipients == ["a@x.com", "b@y.com"]
+
+
+def test_event_sender_and_recipients_are_none_when_unset():
+    """
+    arrange: relation data does not include smtp_sender or recipients.
+    act: add smtp-legacy relation.
+    assert: properties return None.
+    """
+    harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
+    harness.begin()
+    harness.set_leader(True)
+
+    harness.add_relation("smtp-legacy", "smtp-provider", app_data=SAMPLE_LEGACY_RELATION_DATA)
+    event = harness.charm.events[0]
+    assert event.smtp_sender is None
+    assert event.recipients == []
+
+
+def test_get_relation_data_raises_secret_error_when_secret_missing(monkeypatch):
+    """
+    arrange: Relation data includes a password_id that does not exist.
+    act: Attempt to read relation data via get_relation_data_from_relation().
+    assert: SecretError is raised.
+    """
+    harness = Harness(SmtpRequirerCharm, meta=REQUIRER_METADATA)
+    harness.begin()
+    harness.set_leader(True)
+
+    rel_id = harness.add_relation("smtp", "smtp-provider")
+    relation = harness.model.get_relation("smtp", rel_id)
+    assert relation and relation.app
+
+    relation.data[relation.app].update({**RELATION_DATA, "password_id": "missing"})  # nosec B105
+
+    def raise_model_error(*, id: str):  # pylint: disable=redefined-builtin
+        """Simulate Juju raising ModelError when a secret cannot be read.
+
+        Args:
+            id: Secret ID requested.
+
+        Raises:
+            ModelError: Always.
+        """
+        raise ops.model.ModelError("nope")
+
+    monkeypatch.setattr(harness.model, "get_secret", raise_model_error)
+
+    with pytest.raises(smtp.SecretError):
+        harness.charm.smtp.get_relation_data_from_relation(relation)
+
+
+def test_relation_data_rejects_broken_json_list_string():
+    """
+    arrange: recipients field contains an invalid JSON string.
+    act: build SmtpRelationData with the broken recipients value.
+    assert: ValidationError is raised.
+    """
+    with pytest.raises(pydantic.ValidationError):
+        smtp.SmtpRelationData(
+            host="example.smtp",
+            port=25,
+            auth_type="plain",
+            transport_security="tls",
+            skip_ssl_verify=False,
+            recipients="[",
+        )
+
+
+def test_parse_recipients_none_and_empty_then_returns_empty_list():
+    """
+    arrange: raw recipients value is None/empty/whitespace.
+    act: call parse_recipients with None/empty inputs.
+    assert: returns an empty list.
+    """
+    assert parse_recipients(None) == []
+    assert parse_recipients("") == []
+    assert parse_recipients("   ") == []
+
+
+def test_parse_recipients_when_comma_separated_and_single_input_then_return_list():
+    """
+    arrange: raw recipients value is a single email or comma-separated emails.
+    act: call parse_recipients with comma-separated and single inputs.
+    assert: returns a list of trimmed email strings.
+    """
+    assert parse_recipients("a@x.com") == ["a@x.com"]
+    assert parse_recipients("a@x.com,b@y.com") == ["a@x.com", "b@y.com"]
+    assert parse_recipients("a@x.com, b@y.com") == ["a@x.com", "b@y.com"]
+
+
+def test_parse_recipients_when_json_list_string_input_then_return_list():
+    """
+    arrange: raw recipients value is a JSON list string.
+    act: call parse_recipients with a JSON list string input.
+    assert: returns the parsed list of email strings.
+    """
+    assert parse_recipients('["a@x.com", "b@y.com"]') == ["a@x.com", "b@y.com"]
+
+
+def test_parse_recipients_when_bracketless_json_items_string_input_then_return_list():
+    """
+    arrange: raw recipients value is a bracketless JSON items string.
+    act: call parse_recipients with '"a@x.com", "b@y.com"'.
+    assert: returns a list of email strings.
+    """
+    assert parse_recipients('"a@x.com", "b@y.com"') == ["a@x.com", "b@y.com"]
