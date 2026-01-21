@@ -57,7 +57,7 @@ async def any_charm(ops_test: OpsTest):
         # Sync the python-packages here with smtp charm lib PYDEPS
         config={
             "src-overwrite": json.dumps(src_overwrite),
-            "python-packages": "pydantic>=2,email-validator>=2",
+            "python-packages": "pydantic>=2\nemail-validator>=2",
         },
     )
     yield application
