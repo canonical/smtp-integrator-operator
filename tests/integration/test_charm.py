@@ -45,7 +45,7 @@ async def test_relation(
         pytest.skip("skip smtp relation tests on juju 2")
 
     assert ops_test.model
-    await ops_test.model.add_relation(f"{any_charm.name}:smtp", f"{app.name}:smtp")
+    await ops_test.model.integrate(f"{any_charm.name}:smtp", f"{app.name}:smtp")
 
     await app.set_config(  # type: ignore[attr-defined]
         {
@@ -55,7 +55,12 @@ async def test_relation(
         }
     )
     status_name = ops.ActiveStatus.name  # type: ignore[has-type]
-    await ops_test.model.wait_for_idle(status=status_name, raise_on_error=True)
+    await ops_test.model.wait_for_idle(
+        apps=[app.name, any_charm.name],
+        status=status_name,
+        raise_on_error=True,
+        timeout=10 * 60,
+    )
     assert app.units[0].workload_status == status_name  # type: ignore
 
     data = await wait_for_provider_app_data(
@@ -79,7 +84,7 @@ async def test_legacy_relation(
     assert: the charm reaches active status and publishes sender/recipients via relation data.
     """
     assert ops_test.model
-    await ops_test.model.add_relation(f"{any_charm.name}:smtp-legacy", f"{app.name}:smtp-legacy")
+    await ops_test.model.integrate(f"{any_charm.name}:smtp-legacy", f"{app.name}:smtp-legacy")
 
     await app.set_config(  # type: ignore[attr-defined]
         {
@@ -90,7 +95,9 @@ async def test_legacy_relation(
     )
 
     status_name = ops.ActiveStatus.name  # type: ignore[has-type]
-    await ops_test.model.wait_for_idle(status=status_name, raise_on_error=True)
+    await ops_test.model.wait_for_idle(
+        apps=[app.name, any_charm.name], status=status_name, raise_on_error=True
+    )
     assert app.units[0].workload_status == status_name  # type: ignore
 
     data = await wait_for_provider_app_data(

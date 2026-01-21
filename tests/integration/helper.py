@@ -34,9 +34,11 @@ async def get_provider_app_databag_from_any_charm(
     for rel in payload.get("relation-info", []):
         if rel.get("endpoint") != endpoint:
             continue
-        if rel.get("related-endpoint") != f"{provider_app_name}:{endpoint}":
+        related_units = rel.get("related-units", {}) or {}
+        if not any(u.split("/")[0] == provider_app_name for u in related_units):
             continue
-        return rel.get("application-data", {})
+
+        return rel.get("application-data", {}) or {}
 
     raise AssertionError(
         f"Did not find relation data for endpoint={endpoint} with provider app={provider_app_name}"
