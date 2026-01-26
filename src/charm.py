@@ -97,13 +97,11 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
     def _reconcile_smtp(self):
         """Reconcile smtp relations."""
         for relation in self.model.relations[self.smtp.relation_name]:
-            if not self._has_secrets():
-                raise CharmConfigInvalidError("smtp relation is not supported in juju < 3.0.3")
             new_data = self._generate_smtp_data()
             secret = self._get_peer_secret()
-            if new_data.password_id:
+            if secret and new_data.password_id:
                 secret.grant(relation)
-            if not new_data.password_id and secret is not None:
+            if secret and not new_data.password_id and secret is not None:
                 secret.revoke(relation=relation)
             new_data.password = None
             self.smtp.update_relation_data(relation, new_data)
@@ -115,17 +113,16 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             SmtpRelationData containing the SMTP details.
         """
         password = typing.cast(typing.Optional[str], self.config.get("password"))
-        if password and self._has_secrets():
+        password_id = typing.cast(typing.Optional[str], self.config.get("password_secret"))
+        if password_id:
+            self._validate_secret(password_id)
+        elif password:
             password_id = self._ensure_peer_secret(content={"password": password}).id
-        else:
-            password_id = None
-
         recipients_cfg = typing.cast(typing.Optional[str], self.config.get("recipients"))
         recipients_json = None
         if recipients_cfg:
             items = [s.strip() for s in recipients_cfg.split(",") if s.strip()]
             recipients_json = json.dumps(items) if items else None
-
         try:
             return smtp.SmtpRelationData(
                 host=self.config.get("host"),
@@ -195,14 +192,24 @@ class SmtpIntegratorOperatorCharm(ops.CharmBase):
             secret.set_content(content)
         return secret
 
-    def _has_secrets(self) -> bool:
-        """Check if current Juju version supports secrets.
+    def _validate_secret(self, secret_id: str) -> None:
+        """Validate that a secret exists and has the expected content.
 
-        Returns:
-            If secrets are supported or not.
+        Args:
+            secret_id: The Juju secret ID to validate.
+
+        Raises:
+            CharmConfigInvalidError: If the secret does not exist or is invalid.
         """
-        juju_version = ops.JujuVersion.from_environ()
-        return juju_version.has_secrets
+        try:
+            secret = self.model.get_secret(id=secret_id)
+            content = secret.get_content()
+            if "password" not in content:
+                raise CharmConfigInvalidError(
+                    f"Secret with id '{secret_id}' does not contain required key 'password'"
+                )
+        except ops.SecretNotFoundError as ex:
+            raise CharmConfigInvalidError(f"Secret with id '{secret_id}' does not exist") from ex
 
 
 if __name__ == "__main__":  # pragma: nocover

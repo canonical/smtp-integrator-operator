@@ -13,8 +13,11 @@ options:
     description: The SMTP AUTH user to use for the outgoing SMTP relay
     type: string
   password:
-    description: The SMTP AUTH password to use for the outgoing SMTP relay
+    description: The SMTP AUTH password to use for the outgoing SMTP relay If `password_secret` is also set, that value takes precedence.
     type: string
+  password_secret:
+    description: The Juju secret ID containing the SMTP AUTH password. If `password` is also set, this value takes precedence.
+    type: secret
   auth_type:
     description: The type used to authenticate with the SMTP relay. It has to be one of "none", "not_provided" or "plain"
     type: string
