@@ -711,7 +711,7 @@ def test_smtp_module_imports_without_field_validator(monkeypatch):
     """
     arrange: simulate pydantic v1 where field_validator does not exist.
     act: reload smtp module.
-    assert: module reload succeeds (v1 fallback path is exercised).
+    assert: module reload succeeds (v1 fallback path is selected).
     """
 
     class _FakePydantic:  # noqa: DCO060

@@ -97,7 +97,7 @@ except ImportError:
     _pyd_field_validator = None  # type: ignore[assignment]
     _PYDANTIC_V2 = False
 
-# Pydantic v1 validator exists in both, but is "the one" we use for v1
+# Pydantic v1 field validation decorator (v2 uses field_validator)
 from pydantic import validator as _pyd_validator  # type: ignore[attr-defined]
 
 DEFAULT_RELATION_NAME = "smtp"
