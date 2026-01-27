@@ -68,7 +68,7 @@ LIBAPI = 0
 
 # Increment this PATCH version before using `charmcraft publish-lib` or reset
 # to 0 if you are raising the major API version
-LIBPATCH = 20
+LIBPATCH = 21
 
 PYDEPS = ["pydantic>=1.10,<3", "email-validator>=2"]
 
