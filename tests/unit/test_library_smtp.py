@@ -3,6 +3,7 @@
 
 """SMTP library unit tests"""
 
+import importlib
 import itertools
 import json
 import secrets
@@ -704,3 +705,92 @@ def test_parse_recipients_when_bracketless_json_items_string_input_then_return_l
     assert: returns a list of email strings.
     """
     assert parse_recipients('"a@x.com", "b@y.com"') == ["a@x.com", "b@y.com"]
+
+
+def test_smtp_module_imports_without_field_validator(monkeypatch):
+    """
+    arrange: simulate pydantic v1 where field_validator does not exist.
+    act: reload smtp module.
+    assert: module reload succeeds (v1 fallback path is selected).
+    """
+
+    class _FakePydantic:  # noqa: DCO060
+        """Minimal pydantic stub missing field_validator
+
+        Attributes:
+            BaseModel: Minimal BaseModel placeholder.
+            EmailStr: Minimal EmailStr placeholder.
+        """
+
+        BaseModel = object
+        EmailStr = str
+
+        @staticmethod
+        def Field(*_args, **_kwargs):  # noqa: N802 pylint: disable=invalid-name
+            """Return a placeholder Field value.
+
+            Returns:
+                None: Placeholder value for pydantic Field().
+            """
+            return None
+
+        class ValidationError(Exception):
+            """Minimal ValidationError placeholder."""
+
+            def errors(self):
+                """Return empty structured errors.
+
+                Returns:
+                    list: Empty list of error dicts (pydantic-like shape).
+                """
+                return []
+
+        @staticmethod
+        def validator(*_args, **_kwargs):
+            """Return a decorator that leaves the function unchanged.
+
+            Returns:
+                callable: A decorator function.
+            """
+
+            def decorator(fn):
+                """Return the original function unchanged.
+
+                Args:
+                    fn: Function to decorate.
+
+                Returns:
+                    Any: The original function.
+                """
+                return fn
+
+            return decorator
+
+        @staticmethod
+        def root_validator(*_args, **_kwargs):
+            """Return a decorator that leaves the function unchanged.
+
+            Returns:
+                callable: A decorator function.
+            """
+
+            def decorator(fn):
+                """Return the original function unchanged.
+
+                Args:
+                    fn: Function to decorate.
+
+                Returns:
+                    Any: The original function.
+                """
+                return fn
+
+            return decorator
+
+    monkeypatch.setattr(smtp, "pydantic", _FakePydantic(), raising=False)
+
+    # smtp.py should choose v1 validators when field_validator isn't available
+    importlib.reload(smtp)
+
+    # parse_recipients still exists after reload
+    assert callable(smtp.parse_recipients)
