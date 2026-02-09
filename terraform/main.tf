@@ -2,8 +2,7 @@
 # See LICENSE file for licensing details.
 
 resource "juju_application" "smtp_integrator" {
-  name  = var.app_name
-  model = var.model
+  name = var.app_name
 
   charm {
     name     = "smtp-integrator"
@@ -12,6 +11,7 @@ resource "juju_application" "smtp_integrator" {
     revision = var.revision
   }
 
-  config = var.config
-  units  = var.units
+  config     = var.config
+  units      = var.units
+  model_uuid = var.model_uuid
 }
