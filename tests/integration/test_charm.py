@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
@@ -6,34 +5,30 @@
 
 import json
 
-import ops
+import jubilant
 import pytest
-from pytest_operator.plugin import OpsTest
 
 from tests.integration.helper import wait_for_provider_app_data
 
 
-@pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_active(ops_test: OpsTest, app: ops.Application):
+def test_active(juju: jubilant.Juju, app: str):
     """
     arrange: deploy the charm.
     act: configure the charm.
     assert: the charm reaches active status.
     """
-    await app.set_config({"host": "smtp.example"})  # type: ignore[attr-defined]
-    status_name = ops.ActiveStatus.name  # type: ignore[has-type]
-    assert ops_test.model
-    await ops_test.model.wait_for_idle(status=status_name, raise_on_error=True)
-    assert app.units[0].workload_status == status_name  # type: ignore
+    juju.config(app, {"host": "smtp.example"})
+    juju.wait(jubilant.all_active)
+    status = juju.status()
+    assert status.apps[app].units[f"{app}/0"].is_active
 
 
-@pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_relation(
-    ops_test: OpsTest,
-    app: ops.Application,
-    any_charm: ops.Application,
+def test_relation(
+    juju: jubilant.Juju,
+    app: str,
+    any_charm: str,
     juju_version: str,
 ):
     """
@@ -44,66 +39,56 @@ async def test_relation(
     if int(juju_version.split(".")[0]) == 2:
         pytest.skip("skip smtp relation tests on juju 2")
 
-    assert ops_test.model
-    await ops_test.model.integrate(f"{any_charm.name}:smtp", f"{app.name}:smtp")
+    juju.integrate(f"{any_charm}:smtp", f"{app}:smtp")
 
-    await app.set_config(  # type: ignore[attr-defined]
+    juju.config(
+        app,
         {
             "host": "smtp.example",
             "smtp_sender": "no-reply@example.com",
             "recipients": "a@x.com,b@y.com",
-        }
+        },
     )
-    status_name = ops.ActiveStatus.name  # type: ignore[has-type]
-    await ops_test.model.wait_for_idle(
-        apps=[app.name, any_charm.name],
-        status=status_name,
-        raise_on_error=True,
-        timeout=10 * 60,
-    )
-    assert app.units[0].workload_status == status_name  # type: ignore
+    juju.wait(lambda status: jubilant.all_active(status, app, any_charm))
+    status = juju.status()
+    assert status.apps[app].units[f"{app}/0"].is_active
 
-    data = await wait_for_provider_app_data(
-        ops_test=ops_test,
+    data = wait_for_provider_app_data(
+        juju=juju,
         endpoint="smtp",
-        provider_app_name=app.name,
+        provider_app_name=app,
     )
 
     assert data["smtp_sender"] == "no-reply@example.com"
     assert json.loads(data["recipients"]) == ["a@x.com", "b@y.com"]
 
 
-@pytest.mark.asyncio
 @pytest.mark.abort_on_fail
-async def test_legacy_relation(
-    ops_test: OpsTest, app: ops.Application, any_charm: ops.Application
-):
+def test_legacy_relation(juju: jubilant.Juju, app: str, any_charm: str):
     """
     arrange: deploy the charm.
     act: integrate the charm through the smtp-legacy relation and configure it.
     assert: the charm reaches active status and publishes sender/recipients via relation data.
     """
-    assert ops_test.model
-    await ops_test.model.integrate(f"{any_charm.name}:smtp-legacy", f"{app.name}:smtp-legacy")
+    juju.integrate(f"{any_charm}:smtp-legacy", f"{app}:smtp-legacy")
 
-    await app.set_config(  # type: ignore[attr-defined]
+    juju.config(
+        app,
         {
             "host": "smtp.example",
             "smtp_sender": "no-reply@example.com",
             "recipients": "a@x.com,b@y.com",
-        }
+        },
     )
 
-    status_name = ops.ActiveStatus.name  # type: ignore[has-type]
-    await ops_test.model.wait_for_idle(
-        apps=[app.name, any_charm.name], status=status_name, raise_on_error=True
-    )
-    assert app.units[0].workload_status == status_name  # type: ignore
+    juju.wait(lambda status: jubilant.all_active(status, app, any_charm))
+    status = juju.status()
+    assert status.apps[app].units[f"{app}/0"].is_active
 
-    data = await wait_for_provider_app_data(
-        ops_test=ops_test,
+    data = wait_for_provider_app_data(
+        juju=juju,
         endpoint="smtp-legacy",
-        provider_app_name=app.name,
+        provider_app_name=app,
     )
     assert data["smtp_sender"] == "no-reply@example.com"
     assert json.loads(data["recipients"]) == ["a@x.com", "b@y.com"]

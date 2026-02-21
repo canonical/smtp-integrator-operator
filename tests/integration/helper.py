@@ -4,20 +4,20 @@
 
 """Integration test helpers."""
 
-import asyncio
 import json
+import time
 from typing import Any, Dict
 
-from pytest_operator.plugin import OpsTest
+import jubilant
 
 
-async def get_provider_app_databag_from_any_charm(
-    ops_test: OpsTest, endpoint: str, provider_app_name: str
+def get_provider_app_databag_from_any_charm(
+    juju: jubilant.Juju, endpoint: str, provider_app_name: str
 ) -> Dict[str, Any]:
     """Read provider application databag as seen from any/0 via juju show-unit.
 
     Args:
-        ops_test: pytest-operator fixture.
+        juju: jubilant Juju instance.
         endpoint: the endpoint name.
         provider_app_name: the provider application name.
 
@@ -28,7 +28,7 @@ async def get_provider_app_databag_from_any_charm(
         AssertionError: if the databag is not found.
     """
     unit_name = "any/0"
-    _, raw, _ = await ops_test.juju("show-unit", unit_name, "--format", "json")
+    raw = juju.cli("show-unit", unit_name, "--format", "json")
     payload = json.loads(raw)[unit_name]
 
     for rel in payload.get("relation-info", []):
@@ -45,8 +45,8 @@ async def get_provider_app_databag_from_any_charm(
     )
 
 
-async def wait_for_provider_app_data(
-    ops_test: OpsTest,
+def wait_for_provider_app_data(
+    juju: jubilant.Juju,
     endpoint: str,
     provider_app_name: str,
     timeout: int = 120,
@@ -58,7 +58,7 @@ async def wait_for_provider_app_data(
     becomes available or a timeout is reached.
 
     Args:
-        ops_test: The pytest-operator fixture.
+        juju: The jubilant Juju instance.
         endpoint: The relation endpoint name.
         provider_app_name: The provider application name.
         timeout: Maximum time to wait (in seconds).
@@ -71,13 +71,13 @@ async def wait_for_provider_app_data(
         last_error: Stores the last AssertionError raised while polling, so it can be
             re-raised on timeout to preserve the most relevant failure message.
     """
-    deadline = asyncio.get_running_loop().time() + timeout
+    deadline = time.time() + timeout
     last_error = None
 
-    while asyncio.get_running_loop().time() < deadline:
+    while time.time() < deadline:
         try:
-            data = await get_provider_app_databag_from_any_charm(
-                ops_test=ops_test,
+            data = get_provider_app_databag_from_any_charm(
+                juju=juju,
                 endpoint=endpoint,
                 provider_app_name=provider_app_name,
             )
@@ -86,7 +86,7 @@ async def wait_for_provider_app_data(
         except AssertionError as e:
             last_error = e
 
-        await asyncio.sleep(2)
+        time.sleep(2)
 
     if last_error:
         raise last_error
