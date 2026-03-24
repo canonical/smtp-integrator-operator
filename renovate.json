@@ -1,11 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "group:allNonMajor"
-  ],
   "automerge": true,
-  "ignorePaths": [],
   "customDatasources": {
     "charmhub": {
       "defaultRegistryUrlTemplate": "https://api.charmhub.io/v2/charms/info/{{packageName}}?fields=channel-map",
@@ -32,12 +27,22 @@
     },
     {
       "customType": "regex",
-      "fileMatch": ["\\.tftest\\.hcl$", "\\.tf$"],
-      "matchStrings": ["# renovate: depName=\"(?<packageName>[^\"]+)\"\\s*\\n\\s*(?<fieldName>[a-zA-Z0-9_]+)\\s*=\\s*(?<currentValue>\\d+)"],
-      "versioningTemplate": "semver-coerced",
-      "datasourceTemplate": "custom.charmhub"
+      "datasourceTemplate": "custom.charmhub",
+      "fileMatch": [
+        "\\.tftest\\.hcl$",
+        "\\.tf$"
+      ],
+      "matchStrings": [
+        "# renovate: depName=\"(?<packageName>[^\"]+)\"\\s*\\n\\s*(?<fieldName>[a-zA-Z0-9_]+)\\s*=\\s*(?<currentValue>\\d+)"
+      ],
+      "versioningTemplate": "semver-coerced"
     }
   ],
+  "extends": [
+    "config:recommended",
+    "group:allNonMajor"
+  ],
+  "ignorePaths": [],
   "packageRules": [
     {
       "enabled": true,
@@ -47,11 +52,11 @@
       "pinDigests": true
     },
     {
+      "automerge": true,
+      "enabled": true,
       "matchDatasources": [
         "custom.charmhub"
-      ],
-      "automerge": true,
-      "enabled": true
+      ]
     },
     {
       "enabled": false,
@@ -64,6 +69,11 @@
         "patch"
       ]
     }
-  ]
+  ],
+  "schedule": [
+    "* * * * 0,6"
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": true
+  }
 }
-
