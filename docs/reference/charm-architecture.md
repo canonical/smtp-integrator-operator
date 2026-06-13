@@ -24,6 +24,6 @@ The `src/charm.py` is the default entry point for a charm and has the SmtpIntegr
 
 CharmBase is the base class from which all Charms are formed, defined by [Ops](https://ops.readthedocs.io/en/latest/) (Python framework for developing charms).
 
-See more information in [Ops documentation](https://juju.is/docs/sdk/ops).
+See more information in [Ops documentation](https://canonical.com/juju/docs/ops/latest/).
 
 The `__init__` method guarantees that the charm observes all events relevant to its operation and handles them.
