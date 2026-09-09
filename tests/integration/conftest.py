@@ -20,6 +20,12 @@ SERIES_TO_BASE = {
 }
 DEFAULT_SERIES = "jammy"
 
+# any-charm is only the relation peer, so its base does not need to track the base
+# under test. It is released for both 22.04 and 24.04, but Juju resolves the
+# latest/beta channel to its newest revision, which is 24.04 only, so asking for
+# ubuntu@22.04 fails with "base ubuntu@22.04/stable is not supported".
+ANY_CHARM_BASE = "ubuntu@24.04"
+
 
 @fixture(scope="module", name="app_name")
 def app_name_fixture():
@@ -76,7 +82,7 @@ async def app(ops_test: OpsTest, app_name: str, base: str, charm_file: str):
 
 
 @pytest_asyncio.fixture(scope="module")
-async def any_charm(ops_test: OpsTest, base: str):
+async def any_charm(ops_test: OpsTest):
     """SMTP Integrator charm used for integration testing.
 
     Build the charm and deploy it along with Anycharm.
@@ -93,7 +99,7 @@ async def any_charm(ops_test: OpsTest, base: str):
         "any-charm",
         application_name="any",
         channel="beta",
-        base=base,
+        base=ANY_CHARM_BASE,
         # Sync the python-packages here with smtp charm lib PYDEPS
         config={
             "src-overwrite": json.dumps(src_overwrite),
