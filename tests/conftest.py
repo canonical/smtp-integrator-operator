@@ -10,4 +10,7 @@ def pytest_addoption(parser):
     Args:
         parser: Pytest parser.
     """
-    parser.addoption("--charm-file", action="store")
+    # The charm is built for several bases, so the CI passes one --charm-file per
+    # built charm and the integration tests pick the one matching --series.
+    parser.addoption("--charm-file", action="append", default=[])
+    parser.addoption("--series", action="store", default=None)
