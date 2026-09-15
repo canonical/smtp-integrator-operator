@@ -15,6 +15,9 @@ jobs:
       trivy-image-config: "trivy.yaml"
       channel: 1.35-strict/stable
       juju-channel: 3.6/stable
+      # One run per base the charm is built for. ubuntu@26.04 is not covered
+      # yet because any-charm, used by the relation tests, has no 26.04 build.
+      series: '["jammy", "noble"]'
   allure-report:
     if: ${{ !cancelled() && github.event_name == 'schedule' }}
     needs:

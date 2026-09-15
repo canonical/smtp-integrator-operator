@@ -26,9 +26,18 @@ To run tests, run `tox` from within the charm code directory.
 To build and deploy a local version of the charm, simply run:
 
 ```
-charmcraft pack
+# CHARMCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS is required while ubuntu@26.04 is
+# an experimental base for the charm plugin.
+CHARMCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS=true charmcraft pack
+```
+
+This builds one charm per base declared in `charmcraft.yaml`
+(`ubuntu@22.04`, `ubuntu@24.04` and `ubuntu@26.04`). Deploy the one matching the
+base of the machine or model you are targeting, for example:
+
+```
 # Ensure you're connected to a juju model, assuming you're on amd64
-juju deploy ./smtp-integrator_ubuntu-22.04-amd64.charm
+juju deploy ./smtp-integrator_ubuntu@24.04-amd64.charm
 ```
 
 ## Canonical contributor agreement

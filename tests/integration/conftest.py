@@ -11,6 +11,21 @@ import yaml
 from pytest import Config, fixture
 from pytest_operator.plugin import OpsTest
 
+# Ubuntu series the charm is built for, mapped to the Juju base they correspond to.
+# Keep in sync with the platforms in charmcraft.yaml.
+SERIES_TO_BASE = {
+    "jammy": "ubuntu@22.04",
+    "noble": "ubuntu@24.04",
+    "resolute": "ubuntu@26.04",
+}
+DEFAULT_SERIES = "jammy"
+
+# any-charm is only the relation peer, so its base does not need to track the base
+# under test. It is released for both 22.04 and 24.04, but Juju resolves the
+# latest/beta channel to its newest revision, which is 24.04 only, so asking for
+# ubuntu@22.04 fails with "base ubuntu@22.04/stable is not supported".
+ANY_CHARM_BASE = "ubuntu@24.04"
+
 
 @fixture(scope="module", name="app_name")
 def app_name_fixture():
@@ -19,18 +34,49 @@ def app_name_fixture():
     yield metadata["name"]
 
 
+@fixture(scope="module", name="base")
+def base_fixture(pytestconfig: Config):
+    """Provide the Juju base to deploy on, derived from the --series option.
+
+    Raises:
+        ValueError: if the requested series is not one the charm is built for.
+    """
+    series = pytestconfig.getoption("--series") or DEFAULT_SERIES
+    if series not in SERIES_TO_BASE:
+        raise ValueError(
+            f"Unsupported series {series!r}, expected one of {sorted(SERIES_TO_BASE)}"
+        )
+    yield SERIES_TO_BASE[series]
+
+
+@fixture(scope="module", name="charm_file")
+def charm_file_fixture(pytestconfig: Config, base: str):
+    """Provide the built charm file matching the base under test.
+
+    Raises:
+        ValueError: if no charm was built for the base under test.
+    """
+    charm_files = pytestconfig.getoption("--charm-file")
+    # Multi-base builds name the artefacts after their base, for example
+    # smtp-integrator_ubuntu@24.04-amd64.charm.
+    channel = base.split("@")[1]
+    matching = [charm for charm in charm_files if channel in Path(charm).name]
+    if not matching:
+        raise ValueError(f"No charm file built for base {base!r}, got {charm_files}")
+    yield matching[0]
+
+
 @pytest_asyncio.fixture(scope="module")
-async def app(ops_test: OpsTest, pytestconfig: Config, app_name: str):
+async def app(ops_test: OpsTest, app_name: str, base: str, charm_file: str):
     """SMTP Integrator charm used for integration testing.
 
     Build the charm and deploy it along with Anycharm.
     """
-    charm = pytestconfig.getoption("--charm-file")
     assert ops_test.model
     application = await ops_test.model.deploy(
-        f"./{charm}",
+        f"./{charm_file}",
         application_name=app_name,
-        series="jammy",
+        base=base,
     )
     yield application
 
@@ -53,7 +99,7 @@ async def any_charm(ops_test: OpsTest):
         "any-charm",
         application_name="any",
         channel="beta",
-        series="jammy",
+        base=ANY_CHARM_BASE,
         # Sync the python-packages here with smtp charm lib PYDEPS
         config={
             "src-overwrite": json.dumps(src_overwrite),
