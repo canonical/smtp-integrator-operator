@@ -1,15 +1,28 @@
-SMTP Integrator is an integrator charm for providing SMTP configuration details to consumer charms which seek to authenticate using a SMTP server. Configure the SMTP endpoint in the integrator charm and integrate consumer charms as needed.
+SMTP Integrator is an integrator charm for providing SMTP configuration details to consumer charms which seek to authenticate using an SMTP server.
+
+Like any Juju charm, SMTP Integrator supports one-line deployment, configuration, and integration. Configure the SMTP endpoint once in the integrator charm, then integrate any number of consumer charms to share those details over a Juju integration. This keeps SMTP credentials in a single, centrally managed place. The charm can be deployed on both Kubernetes and machine substrates.
+
+This charm will make SMTP configuration straightforward for DevOps and SRE teams through Juju's clean interface.
 
 The code is licensed under the [Apache License, version 2](https://www.apache.org/licenses/LICENSE-2.0), and pull requests are accepted once you've signed a [Contributor License Agreement](https://en.wikipedia.org/wiki/Contributor_License_Agreement).
-
-For details on configuration options, see [this page](https://charmhub.io/smtp-integrator/configure).
 
 ## In this documentation
 
 | | |
 |--|--|
-| [Tutorials](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started)</br>  Get started - a hands-on introduction to using the SMTP Integrator operator for new users </br> |  [How-to guides](https://charmhub.io/smtp-integrator/docs/how-to-contribute) </br> Step-by-step guides covering key operations and common tasks |
-| [Reference](https://charmhub.io/smtp-integrator/docs/reference-actions) </br> Technical information - specifications, APIs, architecture |
+| **Get started** | [Getting started](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started) |
+| **Deployment** | [Configure SMTP](https://charmhub.io/smtp-integrator/docs/how-to-configure-smtp), [Configurations](https://charmhub.io/smtp-integrator/docs/reference-configurations) |
+| **Operations** | [Upgrade](https://charmhub.io/smtp-integrator/docs/how-to-upgrade), [Actions](https://charmhub.io/smtp-integrator/docs/reference-actions) |
+| **Integrations** | [Integrations](https://charmhub.io/smtp-integrator/docs/reference-integrations) |
+| **Design** | [Charm architecture](https://charmhub.io/smtp-integrator/docs/reference-charm-architecture) |
+
+## How this documentation is organized
+
+This documentation uses the [Diátaxis documentation structure](https://diataxis.fr/).
+
+* The [Tutorial](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started) takes you step-by-step through your first deployment of the SMTP Integrator charm.
+* The [How-to guides](https://charmhub.io/smtp-integrator/docs/how-to-configure-smtp) cover practical tasks such as configuring SMTP, upgrading, and contributing to the charm.
+* The [Reference](https://charmhub.io/smtp-integrator/docs/reference-actions) material provides technical details on actions, configurations, integrations, and charm architecture.
 
 ## Contributing to this documentation
 
@@ -23,7 +36,8 @@ The SMTP Integrator Operator is a member of the Ubuntu family. It's an open sour
 project that warmly welcomes community projects, contributions, suggestions,
 fixes and constructive feedback.
 * [Code of conduct](https://ubuntu.com/community/code-of-conduct)
-* [Get support](https://discourse.charmhub.io/)
+* [File a bug](https://github.com/canonical/smtp-integrator-operator/issues)
+* Get support through the [Discourse forum](https://discourse.charmhub.io/)
 * [Join our online chat](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
 * [Contribute](https://charmhub.io/smtp-integrator/docs/how-to-contribute)
 
