@@ -6,16 +6,23 @@ output "app_name" {
   value       = juju_application.smtp_integrator.name
 }
 
-output "provides" {
-  value = {
-    smtp        = "smtp"
-    smtp_legacy = "smtp-legacy"
-  }
+output "application" {
+  description = "The deployed application object."
+  value       = juju_application.smtp_integrator
 }
 
-output "endpoints" {
+output "provides" {
+  description = "Map of the provided integration endpoints."
   value = {
-    smtp        = "smtp"
-    smtp_legacy = "smtp-legacy"
+    smtp = {
+      kind     = "endpoint"
+      name     = juju_application.smtp_integrator.name
+      endpoint = "smtp"
+    }
+    smtp_legacy = {
+      kind     = "endpoint"
+      name     = juju_application.smtp_integrator.name
+      endpoint = "smtp-legacy"
+    }
   }
 }

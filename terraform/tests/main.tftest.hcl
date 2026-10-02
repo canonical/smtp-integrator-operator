@@ -16,7 +16,7 @@ run "basic_deploy" {
   }
 
   assert {
-    condition     = output.app_name == "smtp-integrator"
-    error_message = "smtp-integrator app_name did not match expected"
+    condition     = output.application.name == "smtp-integrator"
+    error_message = "smtp-integrator application name did not match expected"
   }
 }
