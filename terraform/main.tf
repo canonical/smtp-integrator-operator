@@ -11,7 +11,8 @@ resource "juju_application" "smtp_integrator" {
     revision = var.revision
   }
 
-  config     = var.config
-  units      = var.units
-  model_uuid = var.model_uuid
+  config      = var.config
+  constraints = var.constraints
+  units       = var.units
+  model_uuid  = var.model_uuid
 }

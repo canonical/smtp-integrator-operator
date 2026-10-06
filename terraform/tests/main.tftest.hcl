@@ -12,11 +12,11 @@ run "basic_deploy" {
     model_uuid = run.setup_tests.model_uuid
     channel    = "latest/edge"
     # renovate: depName="smtp-integrator"
-    revision = 131
+    revision = 134
   }
 
   assert {
-    condition     = output.app_name == "smtp-integrator"
-    error_message = "smtp-integrator app_name did not match expected"
+    condition     = output.application.name == "smtp-integrator"
+    error_message = "smtp-integrator application name did not match expected"
   }
 }
