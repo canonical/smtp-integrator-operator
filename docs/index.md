@@ -4,16 +4,14 @@ Like any Juju charm, SMTP Integrator supports one-line deployment, configuration
 
 This charm will make SMTP configuration straightforward for DevOps and SRE teams through Juju's clean interface.
 
-The code is licensed under the [Apache License, version 2](https://www.apache.org/licenses/LICENSE-2.0), and pull requests are accepted once you've signed a [Contributor License Agreement](https://en.wikipedia.org/wiki/Contributor_License_Agreement).
 
 ## In this documentation
 
 | | |
 |--|--|
 | **Get started** | [Deploy the SMTP integrator charm](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started) |
-| **Deployment** | [Configure SMTP](https://charmhub.io/smtp-integrator/docs/how-to-configure-smtp) • [Configurations](https://charmhub.io/smtp-integrator/docs/reference-configurations) |
+| **Deployment** | [Configure SMTP](https://charmhub.io/smtp-integrator/docs/how-to-configure-smtp) • [Configurations](https://charmhub.io/smtp-integrator/docs/reference-configurations) • [Integrations](https://charmhub.io/smtp-integrator/docs/reference-integrations) |
 | **Operations** | [Upgrade](https://charmhub.io/smtp-integrator/docs/how-to-upgrade) • [Actions](https://charmhub.io/smtp-integrator/docs/reference-actions) |
-| **Integrations** | [Integrations](https://charmhub.io/smtp-integrator/docs/reference-integrations) |
 | **Design** | [Charm architecture](https://charmhub.io/smtp-integrator/docs/reference-charm-architecture) |
 
 ## How this documentation is organized
@@ -35,6 +33,9 @@ If there's a particular area of documentation that you'd like to see that's miss
 The SMTP Integrator Operator is a member of the Ubuntu family. It's an open source
 project that warmly welcomes community projects, contributions, suggestions,
 fixes and constructive feedback.
+
+The code is licensed under the [Apache License, version 2](https://www.apache.org/licenses/LICENSE-2.0), and pull requests are accepted once you've signed a [Contributor License Agreement](https://en.wikipedia.org/wiki/Contributor_License_Agreement).
+
 * [Code of conduct](https://ubuntu.com/community/code-of-conduct)
 * [File a bug](https://github.com/canonical/smtp-integrator-operator/issues)
 * Get support through the [Discourse forum](https://discourse.charmhub.io/)
