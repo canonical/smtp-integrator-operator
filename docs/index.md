@@ -11,8 +11,8 @@ The code is licensed under the [Apache License, version 2](https://www.apache.or
 | | |
 |--|--|
 | **Get started** | [Deploy the SMTP integrator charm](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started) |
-| **Deployment** | [Configure SMTP](https://charmhub.io/smtp-integrator/docs/how-to-configure-smtp), [Configurations](https://charmhub.io/smtp-integrator/docs/reference-configurations) |
-| **Operations** | [Upgrade](https://charmhub.io/smtp-integrator/docs/how-to-upgrade), [Actions](https://charmhub.io/smtp-integrator/docs/reference-actions) |
+| **Deployment** | [Configure SMTP](https://charmhub.io/smtp-integrator/docs/how-to-configure-smtp) • [Configurations](https://charmhub.io/smtp-integrator/docs/reference-configurations) |
+| **Operations** | [Upgrade](https://charmhub.io/smtp-integrator/docs/how-to-upgrade) • [Actions](https://charmhub.io/smtp-integrator/docs/reference-actions) |
 | **Integrations** | [Integrations](https://charmhub.io/smtp-integrator/docs/reference-integrations) |
 | **Design** | [Charm architecture](https://charmhub.io/smtp-integrator/docs/reference-charm-architecture) |
 
