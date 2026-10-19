@@ -45,7 +45,7 @@ juju deploy ./smtp-integrator_ubuntu@24.04-amd64.charm
 On an ARM64 model, use `smtp-integrator_ubuntu@24.04-arm64.charm` instead.
 
 Integration CI builds on native AMD64 and ARM64 runners and tests each
-architecture on Ubuntu 22.04 and 24.04. Ubuntu 26.04 artifacts are built, but
+architecture on Ubuntu 22.04 LTS and Ubuntu 24.04 LTS. Ubuntu 26.04 LTS artifacts are built, but
 relation tests are not yet enabled for that base because `any-charm` has no
 26.04 build. Edge publishing collects both architecture lanes, and the
 promotion workflow promotes each base/architecture explicitly.
