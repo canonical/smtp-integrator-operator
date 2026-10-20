@@ -50,19 +50,28 @@ def base_fixture(pytestconfig: Config):
     yield SERIES_TO_BASE[series]
 
 
-@fixture(scope="module", name="charm_file")
-def charm_file_fixture(pytestconfig: Config, base: str):
-    """Provide the built charm file matching the base and runner architecture.
+@fixture(scope="module", name="architecture")
+def architecture_fixture():
+    """Provide the runner architecture using Juju architecture names.
 
     Raises:
-        ValueError: if the architecture is unsupported or no unique charm matches.
+        ValueError: if the runner architecture is unsupported.
     """
-    charm_files = pytestconfig.getoption("--charm-file")
     machine = platform.machine()
     architectures = {"x86_64": "amd64", "aarch64": "arm64"}
     if machine not in architectures:
         raise ValueError(f"Unsupported runner architecture {machine!r}")
-    architecture = architectures[machine]
+    return architectures[machine]
+
+
+@fixture(scope="module", name="charm_file")
+def charm_file_fixture(pytestconfig: Config, base: str, architecture: str):
+    """Provide the built charm file matching the base and runner architecture.
+
+    Raises:
+        ValueError: if no unique charm matches.
+    """
+    charm_files = pytestconfig.getoption("--charm-file")
     suffix = f"_{base}-{architecture}.charm"
     matching = [charm for charm in charm_files if Path(charm).name.endswith(suffix)]
     if len(matching) != 1:
@@ -74,7 +83,7 @@ def charm_file_fixture(pytestconfig: Config, base: str):
 
 
 @pytest_asyncio.fixture(scope="module")
-async def app(ops_test: OpsTest, app_name: str, base: str, charm_file: str):
+async def app(ops_test: OpsTest, app_name: str, base: str, charm_file: str, architecture: str):
     """SMTP Integrator charm used for integration testing.
 
     Build the charm and deploy it along with Anycharm.
@@ -84,12 +93,13 @@ async def app(ops_test: OpsTest, app_name: str, base: str, charm_file: str):
         f"./{charm_file}",
         application_name=app_name,
         base=base,
+        constraints={"arch": architecture},
     )
     yield application
 
 
 @pytest_asyncio.fixture(scope="module")
-async def any_charm(ops_test: OpsTest):
+async def any_charm(ops_test: OpsTest, architecture: str):
     """SMTP Integrator charm used for integration testing.
 
     Build the charm and deploy it along with Anycharm.
@@ -107,6 +117,7 @@ async def any_charm(ops_test: OpsTest):
         application_name="any",
         channel="beta",
         base=ANY_CHARM_BASE,
+        constraints={"arch": architecture},
         # Sync the python-packages here with smtp charm lib PYDEPS
         config={
             "src-overwrite": json.dumps(src_overwrite),
