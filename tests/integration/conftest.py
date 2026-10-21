@@ -113,7 +113,7 @@ async def any_charm(ops_test: OpsTest, architecture: str):
     }
     assert ops_test.model
     application = await ops_test.model.deploy(
-        "any-charm",
+        f"ch:{architecture}/any-charm",
         application_name="any",
         channel="beta",
         base=ANY_CHARM_BASE,
