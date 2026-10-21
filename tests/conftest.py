@@ -11,6 +11,6 @@ def pytest_addoption(parser):
         parser: Pytest parser.
     """
     # The charm is built for several bases, so the CI passes one --charm-file per
-    # built charm and the integration tests pick the one matching --series.
+    # built charm and the integration tests match --series and runner architecture.
     parser.addoption("--charm-file", action="append", default=[])
     parser.addoption("--series", action="store", default=None)
