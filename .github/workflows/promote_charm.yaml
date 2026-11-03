@@ -13,14 +13,18 @@ on:
         description: 'Destination Channel'
         options:
         - latest/stable
-    secrets:
-      CHARMHUB_TOKEN:
-        required: true
-
 jobs:
   promote-charm:
+    strategy:
+      fail-fast: false
+      matrix:
+        base: ["22.04", "24.04", "26.04"]
+        architecture: [amd64, arm64]
     uses: canonical/operator-workflows/.github/workflows/promote_charm.yaml@main
     with:
+      base-name: ubuntu
+      base-channel: ${{ matrix.base }}
+      base-architecture: ${{ matrix.architecture }}
       origin-channel: ${{ github.event.inputs.origin-channel }}
       destination-channel: ${{ github.event.inputs.destination-channel }}
     secrets: inherit

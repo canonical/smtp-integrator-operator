@@ -7,10 +7,16 @@ on:
 
 jobs:
   integration-tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-24.04-arm]
     uses: 
       canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
+      builder-runner-label: ${{ matrix.runner }}
+      runs-on: ${{ matrix.runner }}
       trivy-fs-enabled: true
       trivy-image-config: "trivy.yaml"
       channel: 1.35-strict/stable

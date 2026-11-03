@@ -31,14 +31,16 @@ To build and deploy a local version of the charm, simply run:
 CHARMCRAFT_ENABLE_EXPERIMENTAL_EXTENSIONS=true charmcraft pack
 ```
 
-This builds one charm per base declared in `charmcraft.yaml`
-(`ubuntu@22.04`, `ubuntu@24.04` and `ubuntu@26.04`). Deploy the one matching the
-base of the machine or model you are targeting, for example:
+Build on an AMD64 or ARM64 host. This produces charms for the bases declared in
+`charmcraft.yaml`, matching the host's architecture. Deploy the charm matching
+your target base and architecture, for example:
 
 ```
 # Ensure you're connected to a juju model, assuming you're on amd64
 juju deploy ./smtp-integrator_ubuntu@24.04-amd64.charm
 ```
+
+On an ARM64 model, use `smtp-integrator_ubuntu@24.04-arm64.charm` instead.
 
 ## Canonical contributor agreement
 
