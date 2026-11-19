@@ -7,7 +7,8 @@ configure SMTP once and reuse it across any number of consumer charms.
 
 In this tutorial, you'll deploy the SMTP Integrator charm on Kubernetes,
 configure it, and integrate it with a consumer charm to see the SMTP details
-being shared.
+being shared. The charm can also be deployed on a machine substrate, but this
+tutorial uses Kubernetes.
 
 ## What you'll do
 
@@ -34,6 +35,13 @@ station (either locally or in the Multipass VM):
 
 - Juju 3
 - Canonical Kubernetes
+- `jq`
+
+Install `jq`, which you'll use later to package the consumer charm's code:
+
+```
+sudo snap install jq
+```
 
 Use [Concierge](https://github.com/canonical/concierge) to set up Juju and
 Canonical Kubernetes:
@@ -131,34 +139,6 @@ The charm also accepts other options, such as `port` (defaults to `25`),
 You'll change some of them later in this tutorial. For the full list, see the
 [configurations reference](../reference/configurations.md).
 
-## Inspect the Kubernetes resources
-
-Juju runs each charm in its own pod, in a Kubernetes namespace named after the
-model. List the pods in the `smtp-tutorial` namespace:
-
-```
-kubectl get pods -n smtp-tutorial
-```
-
-> **Note:** If `kubectl` isn't configured on your machine, use `sudo k8s kubectl` instead.
-
-The output should be similar to the following:
-
-```
-NAME                            READY   STATUS    RESTARTS   AGE
-modeloperator-656dcbcc6-ncnm8   1/1     Running   0          88s
-smtp-integrator-0               1/1     Running   0          78s
-```
-
-There are two pods:
-
-- `modeloperator-*` is created by Juju for every model and manages the model's
-  applications in Kubernetes.
-- `smtp-integrator-0` runs the first (and only) unit of the SMTP Integrator
-  charm.
-
-`READY 1/1` and `STATUS Running` indicate that both pods are healthy.
-
 ## Deploy a consumer charm
 
 To see the SMTP Integrator charm in action, you need a charm that consumes the
@@ -178,12 +158,25 @@ class AnyCharm(AnyCharmBase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.smtp = smtp.SmtpRequires(self)
+
+    def get_smtp_env(self):
+        data = self.smtp.get_relation_data()
+        if data is None:
+            return {}
+        return {
+            "SMTP_HOST": data.host,
+            "SMTP_PORT": str(data.port),
+            "SMTP_AUTH_TYPE": data.auth_type.value,
+            "SMTP_TRANSPORT_SECURITY": data.transport_security.value,
+        }
 ```
 
 This code uses the `SmtpRequires` class from the
 [`charmlibs-interfaces-smtp`](https://pypi.org/project/charmlibs-interfaces-smtp/)
-library to make the charm a consumer of the `smtp` integration. Real consumer
-charms use the same library to receive the SMTP details.
+library to make the charm a consumer of the `smtp` integration. The
+`get_smtp_env` method reads the SMTP details received through the integration
+and turns them into environment variables, the same way a real application
+would consume them.
 
 Deploy any-charm with the name `smtp-consumer`:
 
@@ -199,8 +192,8 @@ The `src-overwrite` option injects your `any_charm.py` file into the charm, and
 the `python-packages` option installs the `charmlibs-interfaces-smtp` library
 from PyPI.
 
-> **Note:** The command uses `jq` to package the file into the format that `src-overwrite`
-> expects. If `jq` isn't installed, install it with `sudo snap install jq`.
+The command uses `jq` to package the file into the format that `src-overwrite`
+expects.
 
 Installing the Python packages can take a few minutes. Wait until
 `smtp-consumer` reaches `active` status in `juju status`.
@@ -241,21 +234,18 @@ integration is established.
 
 ## Verify the shared SMTP details
 
-Check the data that the consumer has received through the integration:
+Check the SMTP details that the consumer has received, by calling the
+`get_smtp_env` method through any-charm's `rpc` action:
 
 ```
-juju show-unit smtp-consumer/0 --endpoint smtp
+juju run smtp-consumer/0 rpc method=get_smtp_env
 ```
 
-In the output, look for the `application-data` section:
+The output should be similar to the following:
 
 ```
-    application-data:
-      auth_type: none
-      host: smtp.example.com
-      port: "25"
-      skip_ssl_verify: "False"
-      transport_security: none
+return: '{"SMTP_HOST": "smtp.example.com", "SMTP_PORT": "25", "SMTP_AUTH_TYPE": "none",
+  "SMTP_TRANSPORT_SECURITY": "none"}'
 ```
 
 The consumer received the `host` you configured, along with the default values
@@ -268,16 +258,17 @@ charm:
 juju config smtp-integrator port=587 transport_security=starttls
 ```
 
-Run the `juju show-unit` command again. After a few seconds, the
-`application-data` section reflects the new configuration:
+Wait a few seconds and run the `rpc` action again:
 
 ```
-    application-data:
-      auth_type: none
-      host: smtp.example.com
-      port: "587"
-      skip_ssl_verify: "False"
-      transport_security: starttls
+juju run smtp-consumer/0 rpc method=get_smtp_env
+```
+
+The environment variables reflect the new configuration:
+
+```
+return: '{"SMTP_HOST": "smtp.example.com", "SMTP_PORT": "587", "SMTP_AUTH_TYPE": "none",
+  "SMTP_TRANSPORT_SECURITY": "starttls"}'
 ```
 
 Every consumer integrated with the SMTP Integrator charm receives configuration
