@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Documentation
+
+- Refactored the getting started tutorial: updated the requirements, split
+  commands into explained steps, and added a consumer integration,
+  verification, clean-up and next steps sections.
+
 ### Terraform module
 
 - Migrated the `terraform/` module to the [CC008 Charm Terraform

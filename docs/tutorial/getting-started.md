@@ -1,47 +1,316 @@
-# Getting started
+# Deploy the SMTP Integrator charm for the first time
 
-In this tutorial, we'll walk you through the process of deploying the SMTP Integrator charm. We'll be deploying the charm on top of Kubernetes although a machine substrate could also be used.
+The SMTP Integrator charm doesn't send emails itself. Instead, it stores the
+details of an outgoing SMTP relay, such as its host, port and credentials, and
+shares them with other charms through the `smtp` integration. This lets you
+configure SMTP once and reuse it across any number of consumer charms.
 
-## Requirements
+In this tutorial, you'll deploy the SMTP Integrator charm on Kubernetes,
+configure it, and integrate it with a consumer charm to see the SMTP details
+being shared.
 
-You will need:
+## What you'll do
 
-* A laptop or desktop running Ubuntu (or you can use a VM).
-* [Juju and MicroK8s](https://documentation.ubuntu.com/juju/3.6/reference/cloud/list-of-supported-clouds/the-microk8s-cloud-and-juju/) installed.
+1. Deploy the SMTP Integrator charm.
+2. Configure the SMTP relay host.
+3. Deploy a consumer charm.
+4. Integrate the two charms and verify the shared SMTP details.
+5. Clean up the environment.
 
-## Deploy this charm
+## What you'll need
 
-The charm will the deployed in a new model named `smtp-tutorial`:
+You will need a working station, such as a laptop, with AMD64 architecture. Your
+working station should have at least 4 CPU cores, 8 GB of RAM, and 50 GB of
+disk space.
+
+> **Tip:** You can use Multipass to create an isolated environment by running:
+>
+> ```
+> multipass launch 24.04 --name charm-tutorial-vm --cpus 4 --memory 8G --disk 50G
+> ```
+
+This tutorial requires the following software to be installed on your working
+station (either locally or in the Multipass VM):
+
+- Juju 3
+- Canonical Kubernetes
+
+Use [Concierge](https://github.com/canonical/concierge) to set up Juju and
+Canonical Kubernetes:
 
 ```
-# Add the model
+sudo snap install --classic concierge
+sudo concierge prepare -p k8s
+```
+
+The first command installs Concierge, and the second command uses Concierge to
+install and configure Juju and Kubernetes.
+
+For this tutorial, Juju must be bootstrapped to a Kubernetes controller.
+Concierge should complete this step for you. You can verify this by checking
+for `msg="Bootstrapped Juju" provider=k8s` in the terminal output and by
+running `juju controllers`.
+
+If Concierge did not perform the bootstrap, run:
+
+```
+juju bootstrap k8s tutorial-controller
+```
+
+To work inside the Multipass VM, log in with the following command:
+
+```
+multipass shell charm-tutorial-vm
+```
+
+> **Note:** If you're working locally, you don't need to do this step.
+
+## Set up the environment
+
+To manage resources effectively and to separate this tutorial's workload from
+your usual work, create a new model in the Kubernetes controller:
+
+```
 juju add-model smtp-tutorial
+```
 
-# Deploy the charm
+## Deploy the charm
+
+Deploy the SMTP Integrator charm from Charmhub:
+
+```
 juju deploy smtp-integrator
-
-# Provide the mandatory configurations
-juju config smtp-integrator host=smtp.example.com
-
 ```
 
-By running `juju status --relations` the current state of the deployment can be queried, with the charm eventually reaching `Active` state:
-```
-Model           Controller          Cloud/Region        Version  SLA          Timestamp
-smtp-tutorial   microk8s-localhost  microk8s/localhost  3.1.6   unsupported  12:54:25+02:00
+Run `juju status` to check the current state of the deployment. After a minute
+or so, the output should be similar to the following:
 
-App              Version  Status  Scale  Charm            Channel  Rev  Address        Exposed  Message
-smtp-integrator           active      1  smtp-integrator             0  10.152.183.65  no       
+```
+Model          Controller     Cloud/Region  Version  SLA          Timestamp
+smtp-tutorial  concierge-k8s  k8s           3.6.29   unsupported  09:51:30+03:00
+
+App              Version  Status   Scale  Charm            Channel        Rev  Address         Exposed  Message
+smtp-integrator           blocked      1  smtp-integrator  latest/stable  121  10.152.183.234  no       invalid configuration: host
 
 Unit                Workload  Agent  Address     Ports  Message
-smtp-integrator/0*  active    idle   10.1.57.14    
-
+smtp-integrator/0*  blocked   idle   10.1.0.169         invalid configuration: host
 ```
 
-Run `kubectl get pods -n smtp-tutorial` to see the pods that are being created by the charms:
+The charm is in `blocked` status with the message `invalid configuration: host`.
+This is expected: the charm can't share any SMTP details until it knows which
+SMTP relay to point to.
+
+## Configure the SMTP relay
+
+The `host` configuration option is the only mandatory one. It's the hostname or
+IP address of the outgoing SMTP relay, that is, the mail server that consumer
+charms will connect to when sending emails. In a real deployment, this would be
+your organization's mail server or a hosted email provider.
+
+For this tutorial, use the placeholder `smtp.example.com`:
+
+```
+juju config smtp-integrator host=smtp.example.com
+```
+
+Run `juju status` again. The charm should now be `active`:
+
+```
+Model          Controller     Cloud/Region  Version  SLA          Timestamp
+smtp-tutorial  concierge-k8s  k8s           3.6.29   unsupported  09:51:53+03:00
+
+App              Version  Status  Scale  Charm            Channel        Rev  Address         Exposed  Message
+smtp-integrator           active      1  smtp-integrator  latest/stable  121  10.152.183.234  no
+
+Unit                Workload  Agent  Address     Ports  Message
+smtp-integrator/0*  active    idle   10.1.0.169
+```
+
+The charm also accepts other options, such as `port` (defaults to `25`),
+`auth_type`, `user`, `password_secret`, `transport_security` and `domain`.
+You'll change some of them later in this tutorial. For the full list, see the
+[configurations reference](../reference/configurations.md).
+
+## Inspect the Kubernetes resources
+
+Juju runs each charm in its own pod, in a Kubernetes namespace named after the
+model. List the pods in the `smtp-tutorial` namespace:
+
+```
+kubectl get pods -n smtp-tutorial
+```
+
+> **Note:** If `kubectl` isn't configured on your machine, use `sudo k8s kubectl` instead.
+
+The output should be similar to the following:
+
 ```
 NAME                            READY   STATUS    RESTARTS   AGE
-modeloperator-d465f6695-zvhk8   1/1     Running   0          2m33s
-smtp-integrator-0               1/1     Running   0          99s
+modeloperator-656dcbcc6-ncnm8   1/1     Running   0          88s
+smtp-integrator-0               1/1     Running   0          78s
+```
+
+There are two pods:
+
+- `modeloperator-*` is created by Juju for every model and manages the model's
+  applications in Kubernetes.
+- `smtp-integrator-0` runs the first (and only) unit of the SMTP Integrator
+  charm.
+
+`READY 1/1` and `STATUS Running` indicate that both pods are healthy.
+
+## Deploy a consumer charm
+
+To see the SMTP Integrator charm in action, you need a charm that consumes the
+`smtp` integration. In a real deployment, this would be an application that
+sends emails. For this tutorial, you'll use
+[any-charm](https://charmhub.io/any-charm), a test charm whose code you can
+inject through its configuration.
+
+Create a file named `any_charm.py` with the following content:
+
+```python
+from any_charm_base import AnyCharmBase
+from charmlibs.interfaces import smtp
+
+
+class AnyCharm(AnyCharmBase):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.smtp = smtp.SmtpRequires(self)
+```
+
+This code uses the `SmtpRequires` class from the
+[`charmlibs-interfaces-smtp`](https://pypi.org/project/charmlibs-interfaces-smtp/)
+library to make the charm a consumer of the `smtp` integration. Real consumer
+charms use the same library to receive the SMTP details.
+
+Deploy any-charm with the name `smtp-consumer`:
 
 ```
+juju deploy any-charm smtp-consumer \
+  --channel beta \
+  --base ubuntu@24.04 \
+  --config src-overwrite="$(jq -n --rawfile c any_charm.py '{"any_charm.py": $c}')" \
+  --config python-packages="charmlibs-interfaces-smtp"
+```
+
+The `src-overwrite` option injects your `any_charm.py` file into the charm, and
+the `python-packages` option installs the `charmlibs-interfaces-smtp` library
+from PyPI.
+
+> **Note:** The command uses `jq` to package the file into the format that `src-overwrite`
+> expects. If `jq` isn't installed, install it with `sudo snap install jq`.
+
+Installing the Python packages can take a few minutes. Wait until
+`smtp-consumer` reaches `active` status in `juju status`.
+
+## Integrate the charms
+
+The SMTP Integrator charm provides two endpoints: `smtp`, which shares
+passwords through Juju secrets, and `smtp-legacy`, which shares them in plain
+relation data for older consumers. Integrate the consumer with the `smtp`
+endpoint:
+
+```
+juju integrate smtp-integrator:smtp smtp-consumer:smtp
+```
+
+Run `juju status --relations` to check the integration:
+
+```
+Model          Controller     Cloud/Region  Version  SLA          Timestamp
+smtp-tutorial  concierge-k8s  k8s           3.6.29   unsupported  09:53:20+03:00
+
+App              Version  Status  Scale  Charm            Channel        Rev  Address         Exposed  Message
+smtp-consumer             active      1  any-charm        latest/beta    183  10.152.183.210  no
+smtp-integrator           active      1  smtp-integrator  latest/stable  121  10.152.183.234  no
+
+Unit                Workload  Agent  Address     Ports  Message
+smtp-consumer/0*    active    idle   10.1.0.98
+smtp-integrator/0*  active    idle   10.1.0.169
+
+Integration provider        Requirer                    Interface      Type     Message
+smtp-consumer:peer-any      smtp-consumer:peer-any      peer-any       peer
+smtp-integrator:smtp        smtp-consumer:smtp          smtp           regular
+smtp-integrator:smtp-peers  smtp-integrator:smtp-peers  smtp-instance  peer
+```
+
+The `smtp-integrator:smtp` to `smtp-consumer:smtp` line shows that the
+integration is established.
+
+## Verify the shared SMTP details
+
+Check the data that the consumer has received through the integration:
+
+```
+juju show-unit smtp-consumer/0 --endpoint smtp
+```
+
+In the output, look for the `application-data` section:
+
+```
+    application-data:
+      auth_type: none
+      host: smtp.example.com
+      port: "25"
+      skip_ssl_verify: "False"
+      transport_security: none
+```
+
+The consumer received the `host` you configured, along with the default values
+of the other options.
+
+Now change the relay's port and transport security on the SMTP Integrator
+charm:
+
+```
+juju config smtp-integrator port=587 transport_security=starttls
+```
+
+Run the `juju show-unit` command again. After a few seconds, the
+`application-data` section reflects the new configuration:
+
+```
+    application-data:
+      auth_type: none
+      host: smtp.example.com
+      port: "587"
+      skip_ssl_verify: "False"
+      transport_security: starttls
+```
+
+Every consumer integrated with the SMTP Integrator charm receives configuration
+changes automatically, without any action on the consumer side.
+
+## Clean up the environment
+
+Congratulations! You successfully deployed the SMTP Integrator charm,
+configured an SMTP relay and shared its details with a consumer charm.
+
+To remove the model and everything deployed in it, run:
+
+```
+juju destroy-model smtp-tutorial --destroy-storage --no-prompt
+```
+
+If you used a Multipass VM, you can remove it with:
+
+```
+multipass delete --purge charm-tutorial-vm
+```
+
+For more options, see
+[Tear down your test environment](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-juju-deployment/tear-down-your-juju-deployment-local-testing-and-development/).
+
+## Next steps
+
+You achieved a basic deployment of the charm. If you want to go further in your
+deployment or learn more about the charm, check out these pages:
+
+- [Configure SMTP](../how-to/configure-smtp.md) with authentication and
+  transport security for a real SMTP relay.
+- [Upgrade](../how-to/upgrade.md) the charm to a newer revision.
+- Learn about all the available [configurations](../reference/configurations.md)
+  and [integrations](../reference/integrations.md).
+- Understand the [charm architecture](../reference/charm-architecture.md).
