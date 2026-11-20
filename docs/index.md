@@ -9,7 +9,7 @@ This charm will make SMTP configuration straightforward for DevOps and SRE teams
 
 | | |
 |--|--|
-| **Get started** | [Deploy the SMTP integrator charm](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started) |
+| **Get started** | [Deploy the SMTP Integrator charm for the first time](https://charmhub.io/smtp-integrator/docs/tutorial-getting-started) |
 | **Deployment** | [Configure SMTP](https://charmhub.io/smtp-integrator/docs/how-to-configure-smtp) • [Configurations](https://charmhub.io/smtp-integrator/docs/reference-configurations) • [Integrations](https://charmhub.io/smtp-integrator/docs/reference-integrations) |
 | **Operations** | [Upgrade](https://charmhub.io/smtp-integrator/docs/how-to-upgrade) • [Actions](https://charmhub.io/smtp-integrator/docs/reference-actions) |
 | **Design** | [Charm architecture](https://charmhub.io/smtp-integrator/docs/reference-charm-architecture) |
@@ -56,4 +56,4 @@ Thinking about using the SMTP Integrator Operator for your next project? [Get in
   1. [Configurations](reference/configurations.md)
   1. [Integrations](reference/integrations.md)
 1. [Tutorial](tutorial)
-  1. [Getting started](tutorial/getting-started.md)
+  1. [Deploy the SMTP Integrator charm for the first time](tutorial/getting-started.md)
