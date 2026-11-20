@@ -26,7 +26,7 @@ disk space.
 
 > **Tip:** You can use Multipass to create an isolated environment by running:
 >
-> ```
+> 
 > multipass launch 24.04 --name charm-tutorial-vm --cpus 4 --memory 8G --disk 50G
 > ```
 
@@ -173,8 +173,8 @@ class AnyCharm(AnyCharmBase):
 
 This code uses the `SmtpRequires` class from the
 [`charmlibs-interfaces-smtp`](https://pypi.org/project/charmlibs-interfaces-smtp/)
-library to make the charm a consumer of the `smtp` integration. The
-`get_smtp_env` method reads the SMTP details received through the integration
+library to make the charm a consumer of the `smtp` relation. The
+`get_smtp_env` method reads the SMTP details received through the relation
 and turns them into environment variables, the same way a real application
 would consume them.
 
@@ -209,7 +209,7 @@ endpoint:
 juju integrate smtp-integrator:smtp smtp-consumer:smtp
 ```
 
-Run `juju status --relations` to check the integration:
+Run `juju status --relations` to check the relation:
 
 ```
 Model          Controller     Cloud/Region  Version  SLA          Timestamp
@@ -230,11 +230,11 @@ smtp-integrator:smtp-peers  smtp-integrator:smtp-peers  smtp-instance  peer
 ```
 
 The `smtp-integrator:smtp` to `smtp-consumer:smtp` line shows that the
-integration is established.
+relation is established.
 
 ## Verify the shared SMTP details
 
-Check the SMTP details that the consumer has received, by calling the
+Check the SMTP details that the consumer has received by calling the
 `get_smtp_env` method through any-charm's `rpc` action:
 
 ```
